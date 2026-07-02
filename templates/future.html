@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemo AI — Future Self</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#07071a;color:#fff;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:rgba(10,10,22,0.98);border-right:1px solid rgba(255,255,255,0.05);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:fixed;top:0;left:0;bottom:0;width:200px;overflow-y:auto;z-index:50}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:10px;margin-bottom:16px}
+.sb-logo-icon{position:relative;width:32px;height:32px;border-radius:10px;background:#0d0d1e;border:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon::before{content:'';position:absolute;width:20px;height:20px;border:1px dashed rgba(167,139,250,0.4);border-radius:50%}
+.sb-logo-icon::after{content:'';position:absolute;width:8px;height:8px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #7c3aed}
+.sb-logo-text{font-size:14px;font-weight:500}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,0.3)}
+.sb-section{font-size:9px;color:rgba(255,255,255,0.2);padding:10px 10px 3px;letter-spacing:0.08em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.4);transition:all 0.15s;text-decoration:none;position:relative}
+.sb-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8)}
+.sb-item.active{background:rgba(124,58,237,0.15);color:#a78bfa}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:#7c3aed;border-radius:0 2px 2px 0}
+.sb-item i{font-size:15px}
+.sb-badge{margin-left:auto;background:rgba(124,58,237,0.3);color:#a78bfa;font-size:9px;padding:1px 5px;border-radius:8px}
+.sb-footer{margin-top:auto;padding:10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.15);border-radius:10px}
+.sb-footer-label{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px}
+.sb-footer-val{font-size:12px;color:#a78bfa;font-weight:500}
+.sb-mem-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px}
+.sb-mem-fill{height:100%;width:0%;background:linear-gradient(to right,#7c3aed,#3b82f6);border-radius:2px;transition:width 1s ease}
+.lang-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:12px;outline:none;cursor:pointer}
+.lang-select option{background:#13131a}
+
+/* MAIN LAYOUT */
+.main{margin-left:200px;display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,8,20,0.95);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px);flex-shrink:0}
+.topbar-left h2{font-size:14px;font-weight:500;color:#fff}
+.topbar-left p{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.top-lang-select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);outline:none;cursor:pointer}
+.top-lang-select option{background:#13131a}
+
+/* CONTENT */
+.content-scroll{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;max-width:880px}
+.content-scroll::-webkit-scrollbar{width:6px}
+.content-scroll::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.2);border-radius:3px}
+
+.panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:22px}
+.panel-title{font-size:14px;font-weight:500;color:#fff;display:flex;align-items:center;gap:8px}
+.panel-sub{font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;margin-bottom:16px}
+.panel-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* CAPSULE WRITER */
+.capsule-textarea{width:100%;min-height:140px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;color:#fff;font-size:13px;line-height:1.7;font-family:inherit;outline:none;resize:vertical;transition:border-color 0.2s}
+.capsule-textarea:focus{border-color:rgba(124,58,237,0.4)}
+.capsule-textarea::placeholder{color:rgba(255,255,255,0.22)}
+
+.capsule-controls{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.lock-select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:9px 14px;color:#fff;font-size:12px;outline:none;cursor:pointer;font-family:inherit}
+.lock-select option{background:#13131a}
+
+.btn{padding:10px 18px;border-radius:10px;font-size:12px;cursor:pointer;border:none;font-weight:500;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.btn.primary{background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.3)}
+.btn.primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.ghost{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1)}
+.btn.ghost:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+.seal-success{display:none;margin-top:14px;padding:12px 16px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:10px;font-size:12px;color:#34d399;align-items:center;gap:8px;animation:fadeIn 0.4s ease}
+.seal-success.show{display:flex}
+
+/* LETTER FROM MNEMO */
+.letter-card{display:none;margin-top:18px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.18);border-radius:14px;padding:32px;position:relative;overflow:hidden}
+.letter-card.show{display:block;animation:fadeIn 0.5s ease}
+.letter-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#7c3aed,#3b82f6,#60a5fa)}
+.letter-heading{font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(167,139,250,0.7);letter-spacing:0.04em;margin-bottom:18px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.letter-text{font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:2;color:rgba(255,255,255,0.85);white-space:pre-wrap}
+.letter-cursor{display:inline-block;width:2px;height:18px;background:#a78bfa;margin-left:2px;vertical-align:middle;animation:blink 0.9s infinite}
+.letter-sign{margin-top:22px;font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(255,255,255,0.4);font-style:italic}
+
+.typing-dots{display:inline-flex;gap:3px;padding:4px 0}
+.td{width:5px;height:5px;border-radius:50%;background:rgba(167,139,250,0.6);animation:bounce 1.4s infinite;display:inline-block}
+.td:nth-child(2){animation-delay:0.2s}
+.td:nth-child(3){animation-delay:0.4s}
+
+/* CAPSULES LIST */
+.capsule-item{display:flex;align-items:flex-start;gap:14px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:10px}
+.capsule-item:last-child{margin-bottom:0}
+.capsule-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.capsule-icon.locked{background:rgba(251,191,36,0.12);color:#fbbf24}
+.capsule-icon.unlocked{background:rgba(52,211,153,0.12);color:#34d399}
+.capsule-body{flex:1;min-width:0}
+.capsule-dates{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:6px}
+.capsule-dates b{color:rgba(255,255,255,0.55);font-weight:500}
+.capsule-countdown{font-size:11px;color:#fbbf24;margin-bottom:4px}
+.capsule-text{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;display:none}
+.capsule-text.show{display:block;margin-top:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)}
+.capsule-compare{font-size:11px;color:#a78bfa;margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.08);border-radius:8px;line-height:1.6}
+.capsule-empty{text-align:center;padding:24px;color:rgba(255,255,255,0.3);font-size:12px}
+.capsule-empty i{font-size:26px;display:block;margin-bottom:8px;color:rgba(124,58,237,0.35)}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div>
+      <div class="sb-logo-text">Mnemo AI</div>
+      <div class="sb-logo-sub">Life Intelligence</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Main</div>
+  <a href="/dashboard" class="sb-item">
+    <i class="ti ti-layout-dashboard"></i> Dashboard
+  </a>
+  <a href="/chat" class="sb-item">
+    <i class="ti ti-message-circle"></i> Chat
+    <span class="sb-badge">AI</span>
+  </a>
+  <a href="/journal" class="sb-item">
+    <i class="ti ti-notebook"></i> Journal
+  </a>
+  <a href="/insights" class="sb-item">
+    <i class="ti ti-chart-line"></i> Insights
+  </a>
+
+  <div class="sb-section">Memory</div>
+  <a href="/goals" class="sb-item">
+    <i class="ti ti-target"></i> Goals
+  </a>
+  <a href="/timeline" class="sb-item">
+    <i class="ti ti-timeline"></i> Timeline
+  </a>
+  <a href="/future" class="sb-item active">
+    <i class="ti ti-mail"></i> Future self
+  </a>
+  <a href="/forget" class="sb-item">
+    <i class="ti ti-trash"></i> Forget & heal
+  </a>
+
+  <div class="sb-section">Language</div>
+  <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+    <option value="English">🇬🇧 English</option>
+    <option value="Tamil">🇮🇳 Tamil</option>
+    <option value="Hindi">🇮🇳 Hindi</option>
+    <option value="Telugu">🇮🇳 Telugu</option>
+    <option value="Spanish">🇪🇸 Spanish</option>
+    <option value="French">🇫🇷 French</option>
+    <option value="German">🇩🇪 German</option>
+    <option value="Arabic">🇸🇦 Arabic</option>
+    <option value="Japanese">🇯🇵 Japanese</option>
+  </select>
+
+  <div class="sb-footer" style="margin-top:16px">
+    <div class="sb-footer-label">Memory active</div>
+    <div class="sb-footer-val" id="memCount">Loading...</div>
+    <div class="sb-mem-bar"><div class="sb-mem-fill" id="memBar"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Future Self</h2>
+      <p>Letters across time</p>
+    </div>
+    <div class="topbar-right">
+      <select class="top-lang-select" id="topLangSelect" onchange="setLanguage(this.value)">
+        <option value="English">🇬🇧 English</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="content-scroll">
+
+    <!-- SECTION 1: WRITE TO FUTURE SELF -->
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#fbbf24"></div>
+        Write to your future self
+      </div>
+      <div class="panel-sub">Seal a letter that only future-you can open</div>
+
+      <textarea class="capsule-textarea" id="capsuleText" placeholder="Dear Future Me, today I..."></textarea>
+
+      <div class="capsule-controls">
+        <select class="lock-select" id="lockDuration">
+          <option value="7">Lock for 7 days</option>
+          <option value="30">Lock for 30 days</option>
+          <option value="90">Lock for 90 days</option>
+        </select>
+        <button class="btn primary" id="sealBtn" onclick="sealCapsule()">
+          <i class="ti ti-lock"></i> Seal this letter
+        </button>
+      </div>
+
+      <div class="seal-success" id="sealSuccess">
+        <i class="ti ti-check"></i> 🔒 Sealed. Mnemo will remind you when it's time.
+      </div>
+    </div>
+
+    <!-- SECTION 2: LETTER FROM MNEMO -->
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#a78bfa"></div>
+        Let Mnemo write to your future self
+      </div>
+      <div class="panel-sub">Based on your memories and goals</div>
+
+      <button class="btn primary" id="generateLetterBtn" onclick="generateLetter()">
+        <i class="ti ti-sparkles"></i> Generate my letter
+      </button>
+
+      <div class="letter-card" id="letterCard">
+        <div class="letter-heading">
+          <i class="ti ti-mail-opened"></i> A letter from your future self
+        </div>
+        <div class="letter-text" id="letterText"></div>
+        <div class="letter-sign">— Written by Mnemo, from everything you've shared</div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: SEALED CAPSULES -->
+    <div class="panel" style="margin-bottom:24px">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#34d399"></div>
+        Sealed capsules
+      </div>
+      <div class="panel-sub">Letters waiting for their moment</div>
+
+      <div id="capsulesList">
+        <div class="capsule-empty">
+          <i class="ti ti-time-duration-0"></i>
+          No capsules sealed yet. Write your first letter above.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ---------- LANGUAGE ---------- */
+function setLanguage(lang){
+  localStorage.setItem('mnemo_language', lang);
+  document.getElementById('langSelect').value = lang;
+  document.getElementById('topLangSelect').value = lang;
+}
+function getLanguage(){
+  return localStorage.getItem('mnemo_language') || 'English';
+}
+(function initLang(){
+  const saved = getLanguage();
+  document.getElementById('langSelect').value = saved;
+  document.getElementById('topLangSelect').value = saved;
+})();
+
+/* ---------- MEMORY COUNT ---------- */
+async function loadStats(){
+  try{
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    const pct = Math.min((data.memories || 0) / 100 * 100, 100);
+    document.getElementById('memBar').style.width = pct + '%';
+    document.getElementById('memCount').textContent = (data.memories || 0) + ' memories';
+  }catch(e){
+    document.getElementById('memCount').textContent = '0 memories';
+  }
+}
+
+/* ---------- DATE HELPERS ---------- */
+function isoDate(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmtDateShort(iso){
+  const d = new Date(iso + 'T00:00:00');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+function daysBetween(fromIso, toIso) {
+  const from = new Date(fromIso + 'T00:00:00');
+  const to = new Date(toIso + 'T00:00:00');
+  const diffTime = to - from;
+  return Math.max(0, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+}
+
+/* ---------- SEAL CAPSULE ---------- */
+async function sealCapsule(){
+  const textEl = document.getElementById('capsuleText');
+  const text = textEl.value.trim();
+  if(!text){ alert('Write something to your future self first.'); return; }
+
+  const lockDays = parseInt(document.getElementById('lockDuration').value, 10);
+  const today = new Date();
+  const sealedDate = isoDate(today);
+
+  const unlockDateObj = new Date(today);
+  unlockDateObj.setDate(unlockDateObj.getDate() + lockDays);
+  const unlockDate = isoDate(unlockDateObj);
+
+  const btn = document.getElementById('sealBtn');
+  btn.disabled = true;
+
+  const entryPayload = 'TIME CAPSULE [' + unlockDate + ']: ' + text;
+
+  try{
+    await fetch('/api/remember', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ memory: entryPayload, language: getLanguage() })
+    });
+
+    let capsules = [];
+    try{ capsules = JSON.parse(localStorage.getItem('mnemo_capsules')) || []; }catch(e){ capsules = []; }
+
+    const capsule = {
+      id: 'cap_' + Date.now(),
+      text: text,
+      sealedDate: sealedDate,
+      unlockDate: unlockDate,
+      unlocked: false
+    };
+    capsules.unshift(capsule);
+    localStorage.setItem('mnemo_capsules', JSON.stringify(capsules));
+
+    textEl.value = '';
+    const successEl = document.getElementById('sealSuccess');
+    successEl.classList.add('show');
+    setTimeout(()=>successEl.classList.remove('show'), 4000);
+
+    renderCapsules();
+
+  }catch(e){
+    alert('Could not seal your letter right now. Please try again.');
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------- RENDER CAPSULES ---------- */
+function renderCapsules(){
+  let capsules = [];
+  try{ capsules = JSON.parse(localStorage.getItem('mnemo_capsules')) || []; }catch(e){ capsules = []; }
+
+  const container = document.getElementById('capsulesList');
+
+  if(capsules.length === 0){
+    container.innerHTML = '<div class="capsule-empty"><i class="ti ti-time-duration-0"></i>No capsules sealed yet. Write your first letter above.</div>';
+    return;
+  }
+
+  const todayIso = isoDate(new Date());
+
+  container.innerHTML = capsules.map(c=>{
+    const isReady = todayIso >= c.unlockDate;
+    const daysLeft = isReady ? 0 : daysBetween(todayIso, c.unlockDate);
+
+    const iconCls = isReady ? 'unlocked' : 'locked';
+    const iconName = isReady ? 'ti-lock-open' : 'ti-lock';
+
+    let bodyExtra = '';
+    if(isReady){
+      bodyExtra = '<button class="btn ghost" style="margin-top:8px" onclick="unlockCapsule(\''+c.id+'\')">' +
+        '<i class="ti ti-mail-opened"></i> ' + (c.unlocked ? 'Hide letter' : 'Unlock letter') + '</button>' +
+        '<div class="capsule-text' + (c.unlocked ? ' show' : '') + '" id="capsuleText_'+c.id+'">' +
+          escapeHtml(c.text).replace(/\n/g, '<br>') +
+          '<div class="capsule-compare">💭 Look at how far you have come since you wrote this. Mnemo remembers the journey between then and now.</div>' +
+        '</div>';
+    } else {
+      bodyExtra = '<div class="capsule-countdown"><i class="ti ti-hourglass" style="font-size:11px"></i> ' + daysLeft + ' day' + (daysLeft===1?'':'s') + ' remaining</div>';
+    }
+
+    return '<div class="capsule-item">' +
+      '<div class="capsule-icon '+iconCls+'"><i class="ti '+iconName+'"></i></div>' +
+      '<div class="capsule-body">' +
+        '<div class="capsule-dates"><span>Sealed: <b>'+fmtDateShort(c.sealedDate)+'</b></span><span>Unlocks: <b>'+fmtDateShort(c.unlockDate)+'</b></span></div>' +
+        bodyExtra +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ---------- UNLOCK CAPSULE ---------- */
+function unlockCapsule(id){
+  let capsules = [];
+  try{ capsules = JSON.parse(localStorage.getItem('mnemo_capsules')) || []; }catch(e){ capsules = []; }
+
+  const idx = capsules.findIndex(c=>c.id === id);
+  if(idx === -1) return;
+
+  capsules[idx].unlocked = !capsules[idx].unlocked;
+  localStorage.setItem('mnemo_capsules', JSON.stringify(capsules));
+  renderCapsules();
+}
+
+/* ---------- TYPE TEXT ---------- */
+function typeText(element, text, speed){
+  return new Promise(resolve=>{
+    element.innerHTML = '<span></span><span class="letter-cursor"></span>';
+    const span = element.querySelector('span');
+    let i = 0;
+    
+    // Split lines cleanly to support HTML structure while typing
+    const interval = setInterval(()=>{
+      if(i < text.length){
+        if(text.substr(i, 4) === '<br>') {
+          span.innerHTML += '<br>';
+          i += 4;
+        } else {
+          span.innerHTML += escapeHtml(text[i]);
+          i++;
+        }
+      } else {
+        clearInterval(interval);
+        const cursor = element.querySelector('.letter-cursor');
+        if(cursor) cursor.remove();
+        resolve();
+      }
+    }, speed || 22);
+  });
+}
+
+/* ---------- GENERATE LETTER ---------- */
+async function generateLetter(){
+  const btn = document.getElementById('generateLetterBtn');
+  const card = document.getElementById('letterCard');
+  const textEl = document.getElementById('letterText');
+
+  btn.disabled = true;
+  card.classList.add('show');
+  textEl.innerHTML = '<div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+
+  const query = "Write a deeply personal letter from my future self to my current self, based on everything you know about my journey, struggles and goals. Make it emotional and specific to me.";
+
+  try{
+    const res = await fetch('/api/recall', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query: query, language: getLanguage() })
+    });
+    const data = await res.json();
+
+    let letter = (data.results && data.results.length > 0) ? data.results[0] : "";
+    
+    if(!letter) {
+      letter = "I don't have enough memories of your journey yet to write this letter. Keep journaling and talking with me — the more I know, the more personal this letter will become.";
+    }
+
+    // Convert raw linebreaks to markup for typewriter support
+    const formattedLetter = letter.replace(/\n/g, '<br>');
+
+    textEl.innerHTML = '';
+    await typeText(textEl, formattedLetter, 18);
+
+  }catch(e){
+    textEl.textContent = "I couldn't reach your memories right now. Please try again in a moment.";
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------- INIT ---------- */
+loadStats();
+renderCapsules();
+</script>
+</body>
+</html>

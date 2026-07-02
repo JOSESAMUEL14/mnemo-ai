@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemo AI — Your Wrapped</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#07071a;color:#fff;min-height:100vh}
+
+/* SIDEBAR (same as chat/dashboard) */
+.sidebar{background:rgba(10,10,22,0.98);border-right:1px solid rgba(255,255,255,0.05);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:fixed;top:0;left:0;bottom:0;width:200px;overflow-y:auto;z-index:50}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:10px;margin-bottom:16px}
+.sb-logo-icon{position:relative;width:32px;height:32px;border-radius:10px;background:#0d0d1e;border:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon::before{content:'';position:absolute;width:20px;height:20px;border:1px dashed rgba(167,139,250,0.4);border-radius:50%}
+.sb-logo-icon::after{content:'';position:absolute;width:8px;height:8px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #7c3aed}
+.sb-logo-text{font-size:14px;font-weight:500}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,0.3)}
+.sb-section{font-size:9px;color:rgba(255,255,255,0.2);padding:10px 10px 3px;letter-spacing:0.08em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.4);transition:all 0.15s;text-decoration:none;position:relative}
+.sb-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8)}
+.sb-item.active{background:rgba(124,58,237,0.15);color:#a78bfa}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:#7c3aed;border-radius:0 2px 2px 0}
+.sb-item i{font-size:15px}
+.sb-badge{margin-left:auto;background:rgba(124,58,237,0.3);color:#a78bfa;font-size:9px;padding:1px 5px;border-radius:8px}
+.sb-footer{margin-top:auto;padding:10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.15);border-radius:10px}
+.sb-footer-label{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px}
+.sb-footer-val{font-size:12px;color:#a78bfa;font-weight:500}
+.sb-mem-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px}
+.sb-mem-fill{height:100%;width:0%;background:linear-gradient(to right,#7c3aed,#3b82f6);border-radius:2px;transition:width 1s ease}
+.lang-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:12px;outline:none;cursor:pointer}
+.lang-select option{background:#13131a}
+
+/* MAIN LAYOUT (same as chat.html) */
+.main{margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,8,20,0.95);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.topbar-left h2{font-size:14px;font-weight:500;color:#fff}
+.topbar-left p{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.top-chip{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;text-decoration:none}
+.top-lang-select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);outline:none;cursor:pointer}
+.top-lang-select option{background:#13131a}
+
+/* CONTENT — centered single card layout */
+.content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:36px 20px;gap:24px}
+
+/* WRAPPED CARD */
+.wrapped-card{width:100%;max-width:420px;aspect-ratio:4/5;background:linear-gradient(160deg,#1a0533,#050518);border-radius:24px;border:1px solid rgba(167,139,250,0.15);padding:32px 28px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(124,58,237,0.15)}
+.wrapped-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.25),transparent 70%);pointer-events:none}
+.wrapped-card::after{content:'';position:absolute;bottom:-80px;left:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.18),transparent 70%);pointer-events:none}
+
+.wc-head{position:relative;z-index:1}
+.wc-head h1{font-size:20px;font-weight:600;letter-spacing:-0.3px;background:linear-gradient(135deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wc-head .wc-range{font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px}
+
+.wc-stats{display:flex;flex-direction:column;gap:16px;position:relative;z-index:1;margin-top:18px}
+.wc-stat{display:flex;align-items:flex-start;gap:12px}
+.wc-stat-icon{font-size:18px;flex-shrink:0;width:26px;text-align:center}
+.wc-stat-label{font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px}
+.wc-stat-value{font-size:14px;color:#fff;font-weight:500;line-height:1.4}
+
+.wc-quote{position:relative;z-index:1;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08)}
+.wc-quote p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;font-style:italic}
+.wc-quote span{display:block;margin-top:8px;font-size:10px;color:#a78bfa;font-style:normal}
+
+.wc-footer{position:relative;z-index:1;display:flex;align-items:center;gap:6px;margin-top:18px}
+.wc-footer .wc-logo-icon{position:relative;width:18px;height:18px;border-radius:6px;background:#0d0d1e;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wc-footer .wc-logo-icon::before{content:'';position:absolute;width:10px;height:10px;border:1px dashed rgba(167,139,250,0.5);border-radius:50%}
+.wc-footer .wc-logo-icon::after{content:'';position:absolute;width:4px;height:4px;background:#a78bfa;border-radius:50%}
+.wc-footer span{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.03em}
+
+.loading-overlay{position:absolute;inset:0;background:rgba(5,5,20,0.85);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:5;border-radius:24px}
+.loading-overlay.hide{display:none}
+.loading-spinner{font-size:24px;color:#a78bfa;animation:spin 1s linear infinite}
+.loading-overlay span{font-size:11px;color:rgba(255,255,255,0.4)}
+
+/* ACTION BUTTONS */
+.wrapped-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:420px;width:100%}
+.btn{padding:10px 18px;border-radius:10px;font-size:12px;cursor:pointer;border:none;font-weight:500;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit;text-decoration:none}
+.btn.primary{background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.3)}
+.btn.linkedin{background:#0a66c2;color:#fff}
+.btn.linkedin:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,102,194,0.35)}
+.btn.ghost{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1)}
+.btn.ghost:hover{background:rgba(255,255,255,0.1);color:#fff}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div>
+      <div class="sb-logo-text">Mnemo AI</div>
+      <div class="sb-logo-sub">Life Intelligence</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Main</div>
+  <a href="/dashboard" class="sb-item">
+    <i class="ti ti-layout-dashboard"></i> Dashboard
+  </a>
+  <a href="/chat" class="sb-item">
+    <i class="ti ti-message-circle"></i> Chat
+    <span class="sb-badge">AI</span>
+  </a>
+  <a href="/journal" class="sb-item">
+    <i class="ti ti-notebook"></i> Journal
+  </a>
+  <a href="/insights" class="sb-item">
+    <i class="ti ti-chart-line"></i> Insights
+  </a>
+
+  <div class="sb-section">Memory</div>
+  <a href="/goals" class="sb-item">
+    <i class="ti ti-target"></i> Goals
+  </a>
+  <a href="/timeline" class="sb-item">
+    <i class="ti ti-timeline"></i> Timeline
+  </a>
+  <a href="/future" class="sb-item">
+    <i class="ti ti-mail"></i> Future self
+  </a>
+  <a href="/forget" class="sb-item">
+    <i class="ti ti-trash"></i> Forget & heal
+  </a>
+
+  <div class="sb-section">Language</div>
+  <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+    <option value="English">🇬🇧 English</option>
+    <option value="Tamil">🇮🇳 Tamil</option>
+    <option value="Hindi">🇮🇳 Hindi</option>
+    <option value="Telugu">🇮🇳 Telugu</option>
+    <option value="Spanish">🇪🇸 Spanish</option>
+    <option value="French">🇫🇷 French</option>
+    <option value="German">🇩🇪 German</option>
+    <option value="Arabic">🇸🇦 Arabic</option>
+    <option value="Japanese">🇯🇵 Japanese</option>
+  </select>
+
+  <div class="sb-footer" style="margin-top:16px">
+    <div class="sb-footer-label">Memory active</div>
+    <div class="sb-footer-val" id="memCount">Loading...</div>
+    <div class="sb-mem-bar"><div class="sb-mem-fill" id="memBar"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Your Wrapped</h2>
+      <p>A shareable snapshot of your week in memories</p>
+    </div>
+    <div class="topbar-right">
+      <a href="/dashboard" class="top-chip">
+        <i class="ti ti-arrow-left" style="font-size:11px"></i> Back to dashboard
+      </a>
+      <select class="top-lang-select" id="topLangSelect" onchange="setLanguage(this.value)">
+        <option value="English">🇬🇧 English</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="wrapped-card" id="wrappedCard">
+      <div class="loading-overlay" id="loadingOverlay">
+        <i class="ti ti-loader-2 loading-spinner"></i>
+        <span>Reading your week...</span>
+      </div>
+
+      <div class="wc-head">
+        <h1>✨ Your Week in Memories</h1>
+        <div class="wc-range" id="wcRange">Loading date range...</div>
+      </div>
+
+      <div class="wc-stats">
+        <div class="wc-stat">
+          <div class="wc-stat-icon">🧠</div>
+          <div>
+            <div class="wc-stat-label">Memories stored</div>
+            <div class="wc-stat-value" id="wcMemories">—</div>
+          </div>
+        </div>
+        <div class="wc-stat">
+          <div class="wc-stat-icon">😤</div>
+          <div>
+            <div class="wc-stat-label">Most felt</div>
+            <div class="wc-stat-value" id="wcEmotion">—</div>
+          </div>
+        </div>
+        <div class="wc-stat">
+          <div class="wc-stat-icon">🏆</div>
+          <div>
+            <div class="wc-stat-label">Biggest win</div>
+            <div class="wc-stat-value" id="wcWin">—</div>
+          </div>
+        </div>
+        <div class="wc-stat">
+          <div class="wc-stat-icon">💪</div>
+          <div>
+            <div class="wc-stat-label">Resilience score</div>
+            <div class="wc-stat-value" id="wcResilience">—</div>
+          </div>
+        </div>
+        <div class="wc-stat">
+          <div class="wc-stat-icon">📈</div>
+          <div>
+            <div class="wc-stat-label">Growth this week</div>
+            <div class="wc-stat-value" id="wcGrowth">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wc-quote">
+        <p id="wcQuote">"Every memory you keep is a step toward understanding who you're becoming."</p>
+        <span>— Mnemo AI</span>
+      </div>
+
+      <div class="wc-footer">
+        <div class="wc-logo-icon"></div>
+        <span>mnemo-ai</span>
+      </div>
+    </div>
+
+    <div class="wrapped-actions">
+      <button class="btn primary" id="downloadBtn" onclick="downloadWrapped()">
+        <i class="ti ti-download"></i> Download as image
+      </button>
+      <button class="btn linkedin" onclick="shareLinkedIn()">
+        <i class="ti ti-brand-linkedin"></i> Share on LinkedIn
+      </button>
+      <button class="btn ghost" id="regenBtn" onclick="generateWrapped()">
+        <i class="ti ti-refresh"></i> Generate new wrapped
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// LANGUAGE
+function setLanguage(lang){
+  localStorage.setItem('mnemo_language', lang);
+  document.getElementById('langSelect').value = lang;
+  document.getElementById('topLangSelect').value = lang;
+}
+function getLanguage(){
+  return localStorage.getItem('mnemo_language') || 'English';
+}
+(function initLang(){
+  const saved = getLanguage();
+  document.getElementById('langSelect').value = saved;
+  document.getElementById('topLangSelect').value = saved;
+})();
+
+// DATE RANGE (last 7 days)
+function setDateRange(){
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmt = d => months[d.getMonth()] + ' ' + d.getDate();
+  document.getElementById('wcRange').textContent = fmt(start) + ' — ' + fmt(end) + ', ' + end.getFullYear();
+}
+setDateRange();
+
+/* ============================================================
+   GENERATE WRAPPED
+   Calls /api/recall with a single summarizing prompt, then tries
+   to parse the freeform text response into the card's fields
+   using simple line/keyword matching. Falls back to gentle
+   placeholder copy if a field can't be confidently extracted —
+   the card should never look broken even with little/no memory data.
+   ============================================================ */
+function setLoading(isLoading){
+  const overlay = document.getElementById('loadingOverlay');
+  const regenBtn = document.getElementById('regenBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  overlay.classList.toggle('hide', !isLoading);
+  regenBtn.disabled = isLoading;
+  downloadBtn.disabled = isLoading;
+}
+
+function extractField(text, patterns, fallback){
+  for(const pattern of patterns){
+    const match = text.match(pattern);
+    if(match && match[1]) return match[1].trim().replace(/[.,;]+$/, '');
+  }
+  return fallback;
+}
+
+function parseWrappedText(text){
+  return {
+    memories: extractField(text, [
+      /(\d+)\s*(?:total\s*)?memor(?:y|ies)/i,
+      /memor(?:y|ies)[:\-]?\s*(\d+)/i
+    ], null),
+    emotion: extractField(text, [
+      /most\s*(?:common|felt)\s*emotion[:\-]?\s*([a-zA-Z\s]+)/i,
+      /felt\s*mostly\s*([a-zA-Z\s]+)/i
+    ], null),
+    win: extractField(text, [
+      /biggest\s*win[:\-]?\s*([^\n.]+)/i,
+      /win[:\-]?\s*([^\n.]+)/i
+    ], null),
+    resilience: extractField(text, [
+      /resilience[^\d]*(\d{1,3})\s*%/i
+    ], null),
+    growth: extractField(text, [
+      /growth[^\d]*\+?(\d{1,3})\s*%/i
+    ], null),
+    quote: null
+  };
+}
+
+function applyWrappedData(parsed, rawText){
+  document.getElementById('wcMemories').textContent =
+    parsed.memories ? parsed.memories + ' memories' : 'Keep building memories!';
+  document.getElementById('wcEmotion').textContent =
+    parsed.emotion ? capitalize(parsed.emotion) : 'Not enough data yet';
+  document.getElementById('wcWin').textContent =
+    parsed.win ? parsed.win : 'Your next win is on its way';
+  document.getElementById('wcResilience').textContent =
+    parsed.resilience ? parsed.resilience + '%' : '—';
+  document.getElementById('wcGrowth').textContent =
+    parsed.growth ? '+' + parsed.growth + '% this week' : 'Just getting started';
+
+  const quoteEl = document.getElementById('wcQuote');
+  if(rawText && rawText.length > 0 && rawText.length < 180){
+    quoteEl.textContent = '"' + rawText.replace(/^["']|["']$/g, '') + '"';
+  } else {
+    quoteEl.textContent = '"Every memory you keep is a step toward understanding who you\'re becoming."';
+  }
+}
+
+function capitalize(str){
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+async function generateWrapped(){
+  setLoading(true);
+  setDateRange();
+
+  const query = "Summarize my week: total memory themes, most common emotion, one biggest win, resilience percentage estimate, and growth percentage estimate. Keep it short and punchy.";
+
+  try{
+    const res = await fetch('/api/recall', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query: query, language: getLanguage()})
+    });
+    const data = await res.json();
+    const text = (data.results && data.results.length > 0) ? data.results.join(' ') : '';
+
+    if(!text){
+      applyWrappedData({}, '');
+    } else {
+      const parsed = parseWrappedText(text);
+      applyWrappedData(parsed, text);
+    }
+  }catch(e){
+    applyWrappedData({}, '');
+  }finally{
+    setLoading(false);
+  }
+}
+
+/* ============================================================
+   DOWNLOAD AS IMAGE (html2canvas)
+   ============================================================ */
+async function downloadWrapped(){
+  const card = document.getElementById('wrappedCard');
+  const btn = document.getElementById('downloadBtn');
+  btn.disabled = true;
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Preparing...';
+
+  try{
+    const canvas = await html2canvas(card, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    link.download = 'mnemo-wrapped.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }catch(e){
+    alert('Could not generate the image right now. Please try again.');
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+}
+
+/* ============================================================
+   SHARE ON LINKEDIN
+   ============================================================ */
+function shareLinkedIn(){
+  const url = encodeURIComponent(window.location.href);
+  const shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
+  window.open(shareUrl, '_blank');
+}
+
+// LOAD MEMORY COUNT (sidebar footer)
+async function loadStats(){
+  try{
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    const pct = Math.min((data.memories || 0) / 100 * 100, 100);
+    document.getElementById('memBar').style.width = pct + '%';
+    document.getElementById('memCount').textContent = (data.memories || 0) + ' memories';
+  }catch(e){
+    document.getElementById('memCount').textContent = '0 memories';
+  }
+}
+loadStats();
+
+// INIT
+generateWrapped();
+</script>
+</body>
+</html>

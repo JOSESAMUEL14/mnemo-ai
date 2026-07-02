@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mnemo AI — Dashboard</title>
+    
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mnemo">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <script>
+        // Critical blocking routine executed before paint cycles to completely eliminate layout flashes
+        (function() {
+            const savedTheme = localStorage.getItem('mnemo_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <style>
+        :root {
+            --bg-main: #07071a;
+            --bg-sidebar: rgba(10, 10, 22, 0.98);
+            --bg-topbar: rgba(8, 8, 20, 0.95);
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-chip: rgba(255, 255, 255, 0.05);
+            --bg-select: #13131a;
+            --border-card: rgba(255, 255, 255, 0.07);
+            --border-subtle: rgba(255, 255, 255, 0.05);
+            --border-chip: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.5);
+            --text-muted: rgba(255, 255, 255, 0.3);
+            --text-dimmed: rgba(255, 255, 255, 0.4);
+            --text-ghost: rgba(255, 255, 255, 0.6);
+            --accent-purple: #7c3aed;
+            --accent-purple-light: #a78bfa;
+            --accent-blue: #3b82f6;
+            --banner-gradient: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.1));
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f5f5fa;
+            --bg-sidebar: rgba(240, 240, 245, 0.98);
+            --bg-topbar: rgba(255, 255, 255, 0.95);
+            --bg-card: rgba(0, 0, 0, 0.03);
+            --bg-chip: rgba(0, 0, 0, 0.05);
+            --bg-select: #ffffff;
+            --border-card: rgba(0, 0, 0, 0.08);
+            --border-subtle: rgba(0, 0, 0, 0.05);
+            --border-chip: rgba(0, 0, 0, 0.08);
+            --text-primary: #1a1a2e;
+            --text-secondary: rgba(26, 26, 46, 0.6);
+            --text-muted: rgba(26, 26, 46, 0.4);
+            --text-dimmed: rgba(26, 26, 46, 0.555);
+            --text-ghost: rgba(26, 26, 46, 0.7);
+            --accent-purple: #7c3aed;
+            --accent-purple-light: #6d28d9;
+            --accent-blue: #3b82f6;
+            --banner-gradient: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(59, 130, 246, 0.05));
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-main); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
+
+        /* SIDEBAR NAVIGATION */
+        .sidebar { background: var(--bg-sidebar); border-right: 1px solid var(--border-subtle); padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; position: fixed; top: 0; left: 0; bottom: 0; width: 200px; overflow-y: auto; z-index: 50; }
+        .sb-logo { display: flex; align-items: center; gap: 8px; padding: 10px; margin-bottom: 16px; }
+        .sb-logo-icon { position: relative; width: 32px; height: 32px; border-radius: 10px; background: var(--bg-main); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sb-logo-icon::before { content: ''; position: absolute; width: 20px; height: 20px; border: 1px dashed rgba(167, 139, 250, 0.4); border-radius: 50%; }
+        .sb-logo-icon::after { content: ''; position: absolute; width: 8px; height: 8px; background: var(--accent-purple-light); border-radius: 50%; box-shadow: 0 0 8px var(--accent-purple); }
+        .sb-logo-text { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+        .sb-logo-sub { font-size: 9px; color: var(--text-muted); }
+        .sb-section { font-size: 9px; color: rgba(255, 255, 255, 0.2); padding: 10px 10px 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+        [data-theme="light"] .sb-section { color: rgba(26, 26, 46, 0.5); }
+        .sb-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; cursor: pointer; font-size: 12px; color: var(--text-dimmed); transition: all 0.15s; text-decoration: none; position: relative; }
+        .sb-item:hover { background: var(--bg-chip); color: var(--text-primary); }
+        .sb-item.active { background: rgba(124, 58, 237, 0.15); color: var(--accent-purple-light); }
+        .sb-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 14px; background: var(--accent-purple); border-radius: 0 2px 2px 0; }
+        .sb-item i { font-size: 15px; }
+        .sb-badge { margin-left: auto; background: rgba(124, 58, 237, 0.3); color: var(--accent-purple-light); font-size: 9px; padding: 1px 5px; border-radius: 8px; }
+        
+        .sb-footer { margin-top: auto; padding: 10px; background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.15); border-radius: 10px; }
+        .sb-footer-label { font-size: 10px; color: var(--text-dimmed); margin-bottom: 2px; }
+        .sb-footer-val { font-size: 12px; color: var(--accent-purple-light); font-weight: 500; }
+        .sb-mem-bar { height: 3px; background: var(--border-chip); border-radius: 2px; margin-top: 6px; }
+        .sb-mem-fill { height: 100%; width: 0%; background: linear-gradient(to right, var(--accent-purple), var(--accent-blue)); border-radius: 2px; transition: width 1s ease; }
+
+        /* CORE VIEWS CONTAINER */
+        .main { margin-left: 200px; display: flex; flex-direction: column; min-height: 100vh; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-topbar); position: sticky; top: 0; z-index: 40; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .topbar-left h2 { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+        .topbar-left p { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+        .topbar-right { display: flex; align-items: center; gap: 8px; }
+        .top-chip { display: flex; align-items: center; gap: 5px; background: var(--bg-chip); border: 1px solid var(--border-chip); border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .top-chip:hover { background: var(--border-chip); color: var(--text-primary); }
+        .top-chip.accent { background: rgba(124, 58, 237, 0.15); border-color: rgba(124, 58, 237, 0.3); color: var(--accent-purple-light); }
+        .live-dot { width: 5px; height: 5px; border-radius: 50%; background: #34d399; animation: blink 2s infinite; }
+
+        .content { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
+        /* ACCELERATED INTERFACE WRAPPERS */
+        .welcome-banner { background: var(--banner-gradient); border: 1px solid rgba(124, 58, 237, 0.2); border-radius: 16px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .wb-left h3 { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+        .wb-left p { font-size: 12px; color: var(--text-dimmed); line-height: 1.5; }
+        .wb-right { display: flex; gap: 8px; flex-shrink: 0; }
+        .wb-btn { padding: 8px 16px; border-radius: 10px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .wb-btn.primary { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: #fff; }
+        .wb-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3); }
+        .wb-btn.ghost { background: var(--bg-chip); color: var(--text-ghost); border: 1px solid var(--border-chip); }
+
+        /* STATS PANELS GRID */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 550px) { .stats-grid { grid-template-columns: 1fr; } }
+
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 14px; transition: all 0.25s; }
+        .stat-card:hover { background: var(--bg-chip); border-color: rgba(124, 58, 237, 0.25); transform: translateY(-2px); }
+        .sc-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 14px; }
+        .sc-icon.v { background: rgba(124, 58, 237, 0.15); color: var(--accent-purple-light); }
+        .sc-icon.b { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .sc-icon.g { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+        .sc-icon.a { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+        .sc-val { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 1px; }
+        .sc-lbl { font-size: 10px; color: var(--text-muted); }
+        .sc-trend { font-size: 10px; color: #34d399; margin-top: 3px; display: flex; align-items: center; gap: 3px; }
+
+        .bottom-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 12px; }
+        @media (max-width: 768px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+        /* PLATFORM COMPONENTS UI */
+        .panel { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 16px; }
+        .panel-title { font-size: 12px; font-weight: 500; color: var(--text-ghost); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+        .panel-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+        .quick-ask-input { width: 100%; background: var(--bg-chip); border: 1px solid var(--border-chip); border-radius: 10px; padding: 10px 14px; color: var(--text-primary); font-size: 12px; outline: none; margin-bottom: 8px; font-family: inherit; }
+        .quick-ask-input:focus { border-color: rgba(124, 58, 237, 0.4); }
+        .quick-ask-input::placeholder { color: var(--text-muted); }
+        .ask-btn { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: #fff; border: none; padding: 8px 16px; border-radius: 9px; font-size: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .ask-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3); }
+        .ask-response { display: none; margin-top: 12px; padding: 12px; background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.15); border-radius: 10px; font-size: 12px; color: var(--text-ghost); line-height: 1.6; }
+        
+        .typing-dots { display: inline-flex; gap: 3px; padding: 4px 0; }
+        .td { width: 5px; height: 5px; border-radius: 50%; background: rgba(167, 139, 250, 0.6); animation: bounce 1.4s infinite; display: inline-block; }
+        .td:nth-child(2) { animation-delay: 0.2s; }
+        .td:nth-child(3) { animation-delay: 0.4s; }
+
+        .today-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .today-empty { text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px; }
+        .today-empty i { font-size: 28px; display: block; margin-bottom: 8px; color: rgba(124, 58, 237, 0.4); }
+        .today-entry { font-size: 12px; color: var(--text-ghost); line-height: 1.6; padding: 10px; background: var(--bg-chip); border-radius: 8px; margin-top: 8px; border: 1px solid var(--border-subtle); }
+
+        .pat-item { margin-bottom: 10px; }
+        .pat-top { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .pat-name { font-size: 11px; color: var(--text-dimmed); }
+        .pat-pct { font-size: 11px; color: var(--text-primary); font-weight: 500; }
+        .pat-bg { height: 4px; background: var(--border-chip); border-radius: 2px; overflow: hidden; }
+        .pat-fill { height: 100%; border-radius: 2px; animation: growBar 1.5s ease-out; }
+
+        .goal-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 8px; margin-bottom: 6px; text-decoration: none; transition: all 0.2s; }
+        .goal-item:hover { background: var(--bg-chip); }
+        .goal-check { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(124, 58, 237, 0.4); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+        .goal-check.done { background: rgba(52, 211, 153, 0.2); border-color: #34d399; color: #34d399; }
+        .goal-text { font-size: 11px; color: var(--text-ghost); flex: 1; }
+        .goal-text.done { color: var(--text-muted); text-decoration: line-through; }
+
+        .score-card { background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(59, 130, 246, 0.08)); border: 1px solid rgba(124, 58, 237, 0.2); border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 12px; }
+        .score-num { font-size: 40px; font-weight: 600; letter-spacing: -2px; background: linear-gradient(135deg, #c4b5fd, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        [data-theme="light"] .score-num { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .score-bar { height: 6px; background: var(--border-chip); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+        .score-fill { height: 100%; border-radius: 3px; background: linear-gradient(to right, var(--accent-purple), var(--accent-blue), #60a5fa); width: 0%; transition: width 1.5s ease; }
+        .score-desc { font-size: 11px; color: var(--text-dimmed); margin-top: 8px; line-height: 1.5; }
+
+        .lang-select { width: 100%; background: var(--bg-chip); border: 1px solid var(--border-chip); border-radius: 9px; padding: 8px 12px; color: var(--text-primary); font-size: 12px; outline: none; cursor: pointer; }
+        .lang-select option { background: var(--bg-select); color: var(--text-primary); }
+
+        .dash-footer { padding: 14px 24px; border-top: 1px solid var(--border-subtle); text-align: center; margin-top: auto; }
+        .dash-footer span { font-size: 10px; color: var(--text-muted); }
+        .dash-footer strong { color: rgba(167, 139, 250, 0.5); }
+
+        .back-btn { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: var(--text-ghost); text-decoration: none; font-size: 12px; transition: all .2s ease; }
+        .back-btn:hover { color: var(--accent-purple-light); transform: translateX(-3px); }
+        .back-btn i { font-size: 14px; }
+
+        /* TODAY'S MISSION (COACH) CARD */
+        .coach-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .coach-message { font-size: 12px; color: var(--text-ghost); line-height: 1.6; padding: 10px; background: var(--bg-chip); border-radius: 8px; border: 1px solid var(--border-subtle); }
+        .coach-refresh-btn { margin-top: 10px; width: 100%; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.2); color: var(--accent-purple-light); font-size: 11px; padding: 8px; border-radius: 9px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .coach-refresh-btn:hover { background: rgba(124, 58, 237, 0.18); }
+        .coach-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .coach-skeleton { display: flex; flex-direction: column; gap: 6px; }
+        .coach-skeleton-line { height: 10px; border-radius: 4px; background: linear-gradient(90deg, var(--bg-chip) 25%, var(--border-chip) 50%, var(--bg-chip) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+        .coach-skeleton-line.w80 { width: 80%; }
+        .coach-skeleton-line.w60 { width: 60%; }
+        .coach-skeleton-line.w90 { width: 90%; }
+
+        @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.3 } }
+        @keyframes bounce { 0%, 60%, 100% { transform: translateY(0) } 30% { transform: translateY(-5px) } }
+        @keyframes growBar { from { width: 0 } }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sb-logo">
+        <div class="sb-logo-icon"></div>
+        <div>
+            <div class="sb-logo-text">Mnemo AI</div>
+            <div class="sb-logo-sub">Life Intelligence</div>
+        </div>
+    </div>
+
+    <div class="sb-section">Main</div>
+    <a href="/dashboard" class="sb-item active">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+    </a>
+    <a href="/chat" class="sb-item">
+        <i class="ti ti-message-circle"></i> Chat
+        <span class="sb-badge">AI</span>
+    </a>
+    <a href="/journal" class="sb-item">
+        <i class="ti ti-notebook"></i> Journal
+    </a>
+    <a href="/insights" class="sb-item">
+        <i class="ti ti-chart-line"></i> Insights
+    </a>
+
+    <div class="sb-section">Memory</div>
+    <a href="/goals" class="sb-item">
+        <i class="ti ti-target"></i> Goals
+    </a>
+    <a href="/timeline" class="sb-item">
+        <i class="ti ti-timeline"></i> Timeline
+    </a>
+    <a href="/future" class="sb-item">
+        <i class="ti ti-mail"></i> Future self
+    </a>
+    <a href="/forget" class="sb-item">
+        <i class="ti ti-trash"></i> Forget & heal
+    </a>
+
+    <div class="sb-section">Language</div>
+    <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+        <option value="English">🇬🇧 English</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+    </select>
+
+    <div class="sb-footer" style="margin-top:16px">
+        <div class="sb-footer-label">Memory active</div>
+        <div class="sb-footer-val" id="memCount">Loading...</div>
+        <div class="sb-mem-bar"><div class="sb-mem-fill" id="memBar"></div></div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="/" class="back-btn">
+                <i class="ti ti-arrow-left"></i> Back
+            </a>
+            <h2 id="greeting">Good morning — Mnemo remembers you</h2>
+            <p id="dateDisplay">Loading...</p>
+        </div>
+        <div class="topbar-right">
+            <button onclick="toggleTheme()" class="top-chip" aria-label="Toggle Dark/Light Mode" style="background: transparent; height: 28px; width: 34px; padding: 0; justify-content: center; border: none;">
+                <i id="theme-toggle-icon" class="ti ti-sun" style="font-size:14px"></i>
+            </button>
+            <div class="top-chip">
+                <div class="live-dot"></div>Memory live
+            </div>
+            <a href="/journal" class="top-chip">
+                <i class="ti ti-plus" style="font-size:11px"></i> Add memory
+            </a>
+            <a href="/chat" class="top-chip accent">
+                <i class="ti ti-message-circle" style="font-size:11px"></i> Chat with Mnemo
+            </a>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="welcome-banner">
+            <div class="wb-left">
+                <h3>Welcome to Mnemo AI 🧠</h3>
+                <p>Your life intelligence platform is ready.<br>Start by writing today's journal entry or ask Mnemo anything about your journey.</p>
+            </div>
+            <div class="wb-right">
+                <a href="/journal" class="wb-btn primary">
+                    <i class="ti ti-notebook"></i> Write today's entry
+                </a>
+                <a href="/chat" class="wb-btn ghost">
+                    <i class="ti ti-message-circle"></i> Chat
+                </a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="sc-icon v"><i class="ti ti-brain"></i></div>
+                <div class="sc-val" id="statMem">0</div>
+                <div class="sc-lbl">Memories stored</div>
+                <div class="sc-trend"><i class="ti ti-trending-up"></i> Growing</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon b"><i class="ti ti-calendar"></i></div>
+                <div class="sc-val" id="statDays">1</div>
+                <div class="sc-lbl">Days active</div>
+                <div class="sc-trend"><i class="ti ti-flame"></i> Streak active</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon g"><i class="ti ti-target"></i></div>
+                <div class="sc-val" id="statGoals">0</div>
+                <div class="sc-lbl">Goals locked in</div>
+                <div class="sc-trend"><i class="ti ti-lock"></i> Never forgotten</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon a"><i class="ti ti-trending-up"></i></div>
+                <div class="sc-val" id="statScore">--</div>
+                <div class="sc-lbl">Mnemo Score</div>
+                <div class="sc-trend" id="statScoreTrend"><i class="ti ti-arrow-up"></i> Calculating...</div>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <div class="panel">
+                    <div class="panel-title">
+                        <div class="panel-dot" style="background:#a78bfa"></div>
+                        Quick Life Ask
+                    </div>
+                    <input class="quick-ask-input" id="quickAskInput" placeholder="Ask Mnemo anything about your life...">
+                    <button class="ask-btn" onclick="quickAsk()">
+                        <i class="ti ti-search"></i> Ask Mnemo
+                    </button>
+                    <div class="ask-response" id="askResponse"></div>
+                </div>
+
+                <div class="today-card">
+                    <div class="panel-title">
+                        <div class="panel-dot" style="background:#60a5fa"></div>
+                        Today's memories
+                    </div>
+                    <div id="todayMemoryContent">
+                        <div class="today-empty" id="todayEmpty">
+                            <i class="ti ti-notebook"></i>
+                            No memories yet today.<br>
+                            <a href="/journal" style="color:#a78bfa;text-decoration:none;font-size:12px">Write your first entry →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <div class="score-card">
+                    <div class="score-label">Your Mnemo Score</div>
+                    <div class="score-num" id="scoreNum">--</div>
+                    <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+                    <div class="score-desc" id="scoreDesc">
+                        Write your first memory to unlock your score
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">
+                        <div class="panel-dot" style="background:#34d399"></div>
+                        Life patterns
+                    </div>
+                    <div id="patternsArea">
+                        <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:11px">
+                            <i class="ti ti-chart-bar" style="font-size:24px;display:block;margin-bottom:6px;color:rgba(124,58,237,0.3)"></i>
+                            Patterns appear after<br>your first memories
+                        </div>
+                    </div>
+                </div>
+
+                <div class="coach-card">
+                    <div class="panel-title">
+                        <div class="panel-dot" style="background:#a78bfa"></div>
+                        🎯 Today's Mission from Mnemo
+                    </div>
+                    <div id="coachContent">
+                        <div class="coach-skeleton">
+                            <div class="coach-skeleton-line w90"></div>
+                            <div class="coach-skeleton-line w80"></div>
+                            <div class="coach-skeleton-line w60"></div>
+                        </div>
+                    </div>
+                    <button class="coach-refresh-btn" id="coachRefreshBtn" onclick="loadCoach()">
+                        <i class="ti ti-refresh"></i> Get new mission
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">
+                        <div class="panel-dot" style="background:#fbbf24"></div>
+                        Active goals
+                        <a href="/goals" style="margin-left:auto;font-size:10px;color:#a78bfa;text-decoration:none">View all →</a>
+                    </div>
+                    <div id="goalsPreview">
+                        <div style="text-align:center;padding:12px;color:var(--text-muted);font-size:11px">
+                            <a href="/goals" style="color:#a78bfa;text-decoration:none">+ Add your first goal →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dash-footer">
+        <span>Mnemo AI · Powered by <strong>Cognee V1</strong> · Open source memory layer</span>
+        <div style="margin-top: 6px;">
+            <a href="/api-docs" style="color: var(--accent-purple-light); text-decoration: none; font-size: 11px; font-weight: 500;">
+                <i class="ti ti-code" style="font-size: 12px; vertical-align: middle;"></i> API Documentation
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// THEME SWITCH ENGINE
+function getTheme() {
+    return localStorage.getItem('mnemo_theme') || 'dark';
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('mnemo_theme', theme);
+    updateToggleIcon(theme);
+}
+
+function toggleTheme() {
+    setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+}
+
+function updateToggleIcon(theme) {
+    const icon = document.getElementById('theme-toggle-icon');
+    if (icon) icon.className = theme === 'light' ? 'ti ti-moon' : 'ti ti-sun';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateToggleIcon(getTheme());
+    loadStats();
+    loadCoach();
+});
+
+// SYSTEM CLOCK DESCRIPTIVE TIMESTAMP
+function setGreeting(){
+    const h = new Date().getHours();
+    const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greeting').textContent = greet + ' — Mnemo remembers you';
+    
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const now = new Date();
+    document.getElementById('dateDisplay').textContent = `${days[now.getDay()]} — ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+setGreeting();
+
+// LOCALIZATION CONTROL
+function setLanguage(lang){
+    localStorage.setItem('mnemo_language', lang);
+}
+function getLanguage() {
+    return localStorage.getItem('mnemo_language') || 'English';
+}
+const savedLang = localStorage.getItem('mnemo_language');
+if(savedLang) document.getElementById('langSelect').value = savedLang;
+
+// SCORE DESCRIPTION HELPER
+function getScoreDesc(score) {
+    if (score >= 80) return "Exceptional mental alignment and persistent focus.";
+    if (score >= 50) return "Steady growth. Keep recording milestones.";
+    return "Beginning your tracking journey.";
+}
+
+// ASYNC RECALL ENGINE
+async function quickAsk(){
+    const q = document.getElementById('quickAskInput').value.trim();
+    if(!q) return;
+
+    const box = document.getElementById('askResponse');
+    box.style.display = 'block';
+    box.innerHTML = '<div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+
+    try {
+        const res = await fetch('/api/recall', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q, language: getLanguage() })
+        });
+        const data = await res.json();
+        if(data.results && data.results.length > 0){
+            box.innerHTML = '🧠 ' + data.results[0];
+        } else {
+            box.innerHTML = '💭 Start writing memories first — then ask me anything about your life!';
+        }
+    } catch(e) {
+        box.innerHTML = '❌ Error connecting to Mnemo. Please try again.';
+    }
+}
+
+document.getElementById('quickAskInput').addEventListener('keypress', function(e){
+    if(e.key === 'Enter') quickAsk();
+});
+
+// COACH/MISSION RETRIEVAL LAYER
+async function loadCoach() {
+    const btn = document.getElementById('coachRefreshBtn');
+    const content = document.getElementById('coachContent');
+    if(btn) btn.disabled = true;
+    
+    try {
+        const res = await fetch('/api/coach');
+        const data = await res.json();
+        if(data.mission) {
+            content.innerHTML = `<div class="coach-message">${data.mission}</div>`;
+        } else {
+            content.innerHTML = `<div class="coach-message">Reflect on your values today. What's one key goal you want to step towards?</div>`;
+        }
+    } catch(e) {
+        content.innerHTML = `<div class="coach-message">Stay mindful and track your accomplishments as they happen.</div>`;
+    } finally {
+        if(btn) btn.disabled = false;
+    }
+}
+
+// METRICS HYDRATION LAYER
+async function loadStats(){
+    try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        
+        document.getElementById('statMem').textContent = data.memories || 0;
+        document.getElementById('statDays').textContent = data.days_active || 1;
+        document.getElementById('statGoals').textContent = data.goals_count || 0;
+
+        const score = data.mnemo_score || 0;
+        if(score > 0){
+            document.getElementById('statScore').textContent = score;
+            document.getElementById('statScoreTrend').innerHTML = '<i class="ti ti-trending-up"></i> Dynamic';
+            document.getElementById('scoreNum').textContent = score;
+            document.getElementById('scoreFill').style.width = score + '%';
+            document.getElementById('scoreDesc').textContent = getScoreDesc(score);
+        }
+
+        const pct = Math.min(((data.memories || 0) / 100) * 100, 100);
+        document.getElementById('memBar').style.width = pct + '%';
+        document.getElementById('memCount').textContent = (data.memories || 0) + ' memories';
+
+        const container = document.getElementById('todayMemoryContent');
+        if (data.today_memories && data.today_memories.length > 0) {
+            container.innerHTML = data.today_memories.map(m => `<div class="today-entry">${m}</div>`).join('');
+        }
+
+        const patternsArea = document.getElementById('patternsArea');
+        if (data.patterns && data.patterns.length > 0) {
+            patternsArea.innerHTML = data.patterns.map(p => `
+                <div class="pat-item">
+                    <div class="pat-top">
+                        <span class="pat-name">${p.name}</span>
+                        <span class="pat-pct">${p.percentage}%</span>
+                    </div>
+                    <div class="pat-bg">
+                        <div class="pat-fill" style="width: ${p.percentage}%; background: ${p.color || 'var(--accent-purple)'}"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const goalsPreview = document.getElementById('goalsPreview');
+        if (data.goals && data.goals.length > 0) {
+            goalsPreview.innerHTML = data.goals.map(g => `
+                <a href="/goals" class="goal-item">
+                    <div class="goal-check ${g.completed ? 'done' : ''}">
+                        ${g.completed ? '<i class="ti ti-check"></i>' : ''}
+                    </div>
+                    <div class="goal-text ${g.completed ? 'done' : ''}">${g.title}</div>
+                </a>
+            `).join('');
+        }
+    } catch(e) {
+        console.error("Error hydration failed:", e);
+    }
+}
+</script>
+</body>
+</html>

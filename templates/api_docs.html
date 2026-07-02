@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemo AI — Developer API</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#07071a;color:#fff;min-height:100vh}
+
+/* SIDEBAR (same as dashboard.html) */
+.sidebar{background:rgba(10,10,22,0.98);border-right:1px solid rgba(255,255,255,0.05);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:fixed;top:0;left:0;bottom:0;width:200px;overflow-y:auto;z-index:50}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:10px;margin-bottom:16px}
+.sb-logo-icon{position:relative;width:32px;height:32px;border-radius:10px;background:#0d0d1e;border:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon::before{content:'';position:absolute;width:20px;height:20px;border:1px dashed rgba(167,139,250,0.4);border-radius:50%}
+.sb-logo-icon::after{content:'';position:absolute;width:8px;height:8px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #7c3aed}
+.sb-logo-text{font-size:14px;font-weight:500}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,0.3)}
+.sb-section{font-size:9px;color:rgba(255,255,255,0.2);padding:10px 10px 3px;letter-spacing:0.08em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.4);transition:all 0.15s;text-decoration:none;position:relative}
+.sb-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8)}
+.sb-item.active{background:rgba(124,58,237,0.15);color:#a78bfa}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:#7c3aed;border-radius:0 2px 2px 0}
+.sb-item i{font-size:15px}
+.sb-badge{margin-left:auto;background:rgba(124,58,237,0.3);color:#a78bfa;font-size:9px;padding:1px 5px;border-radius:8px}
+.sb-footer{margin-top:auto;padding:10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.15);border-radius:10px}
+.sb-footer-label{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px}
+.sb-footer-val{font-size:12px;color:#a78bfa;font-weight:500}
+.lang-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:12px;outline:none;cursor:pointer}
+.lang-select option{background:#13131a}
+
+/* MAIN */
+.main{margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,8,20,0.95);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.topbar-left h2{font-size:14px;font-weight:500;color:#fff}
+.topbar-left p{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;color:rgba(255,255,255,0.6);text-decoration:none;font-size:12px;transition:all .2s ease}
+.back-btn:hover{color:#a78bfa;transform:translateX(-3px)}
+.back-btn i{font-size:14px}
+.top-chip{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;text-decoration:none}
+.top-chip:hover{background:rgba(255,255,255,0.08);color:#fff}
+.top-chip.accent{background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);color:#a78bfa}
+
+/* CONTENT */
+.content{padding:20px 24px;display:flex;flex-direction:column;gap:16px;flex:1;max-width:920px}
+
+.doc-header{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(59,130,246,0.1));border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:24px}
+.doc-header h1{font-size:22px;font-weight:600;margin-bottom:6px}
+.doc-header p{font-size:13px;color:rgba(255,255,255,0.45)}
+
+.section-title{font-size:12px;font-weight:500;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 2px;display:flex;align-items:center;gap:6px}
+
+/* ENDPOINT CARD */
+.endpoint-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;transition:all 0.2s}
+.endpoint-card:hover{border-color:rgba(124,58,237,0.25)}
+.ep-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.method-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:6px;letter-spacing:0.03em;font-family:'SF Mono',Menlo,Consolas,monospace}
+.method-badge.get{background:rgba(52,211,153,0.15);color:#34d399}
+.method-badge.post{background:rgba(59,130,246,0.15);color:#60a5fa}
+.ep-path{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:13px;color:#fff}
+.ep-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px;line-height:1.5}
+.ep-block-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.code-block{background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;color:rgba(255,255,255,0.75);overflow-x:auto;white-space:pre;line-height:1.6}
+.code-block .k{color:#a78bfa}
+.code-block .s{color:#34d399}
+.code-block .n{color:#60a5fa}
+.ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ep-grid.single{grid-template-columns:1fr}
+
+/* TRY IT */
+.try-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:18px}
+.try-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.try-select{flex:1;min-width:200px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:9px 12px;color:#fff;font-size:12px;outline:none;cursor:pointer}
+.try-select option{background:#13131a}
+.try-textarea{width:100%;background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px;color:rgba(255,255,255,0.8);font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;min-height:100px;outline:none;resize:vertical;margin-bottom:10px}
+.try-textarea:focus{border-color:rgba(124,58,237,0.4)}
+.try-btn{background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;border:none;padding:9px 18px;border-radius:9px;font-size:12px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.try-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(124,58,237,0.3)}
+.try-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.try-response-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 6px}
+.try-response{background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:12px 14px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;color:rgba(255,255,255,0.7);min-height:60px;white-space:pre-wrap;word-break:break-word}
+.try-response.error{color:#f87171}
+.try-response.success{color:#34d399}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 8px;border-radius:10px;margin-bottom:8px}
+.status-pill.ok{background:rgba(52,211,153,0.15);color:#34d399}
+.status-pill.fail{background:rgba(248,113,113,0.15);color:#f87171}
+
+.dash-footer{padding:12px 24px;border-top:1px solid rgba(255,255,255,0.04);text-align:center}
+.dash-footer span{font-size:10px;color:rgba(255,255,255,0.15)}
+.dash-footer strong{color:rgba(167,139,250,0.4)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.endpoint-card,.doc-header,.try-panel{animation:fadeIn 0.4s ease both}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div>
+      <div class="sb-logo-text">Mnemo AI</div>
+      <div class="sb-logo-sub">Life Intelligence</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Main</div>
+  <a href="/dashboard" class="sb-item">
+    <i class="ti ti-layout-dashboard"></i> Dashboard
+  </a>
+  <a href="/chat" class="sb-item">
+    <i class="ti ti-message-circle"></i> Chat
+    <span class="sb-badge">AI</span>
+  </a>
+  <a href="/journal" class="sb-item">
+    <i class="ti ti-notebook"></i> Journal
+  </a>
+  <a href="/insights" class="sb-item">
+    <i class="ti ti-chart-line"></i> Insights
+  </a>
+
+  <div class="sb-section">Memory</div>
+  <a href="/goals" class="sb-item">
+    <i class="ti ti-target"></i> Goals
+  </a>
+  <a href="/timeline" class="sb-item">
+    <i class="ti ti-timeline"></i> Timeline
+  </a>
+  <a href="/future" class="sb-item">
+    <i class="ti ti-mail"></i> Future self
+  </a>
+  <a href="/forget" class="sb-item">
+    <i class="ti ti-trash"></i> Forget & heal
+  </a>
+
+  <div class="sb-section">Developer</div>
+  <a href="/api-docs" class="sb-item active">
+    <i class="ti ti-code"></i> API Docs
+  </a>
+
+  <div class="sb-footer" style="margin-top:16px">
+    <div class="sb-footer-label">Docs version</div>
+    <div class="sb-footer-val">v1.0</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="/dashboard" class="back-btn">
+        <i class="ti ti-arrow-left"></i> Back to Dashboard
+      </a>
+      <h2>Developer API</h2>
+      <p>Reference & live testing</p>
+    </div>
+    <div class="topbar-right">
+      <a class="top-chip accent" href="#try-it">
+        <i class="ti ti-bolt" style="font-size:11px"></i> Try it live
+      </a>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="doc-header">
+      <h1>Mnemo AI — Developer API</h1>
+      <p>Build on top of Mnemo's memory layer</p>
+    </div>
+
+    <div class="section-title"><i class="ti ti-plug"></i> Endpoints</div>
+
+    <!-- POST /api/remember -->
+    <div class="endpoint-card">
+      <div class="ep-top">
+        <span class="method-badge post">POST</span>
+        <span class="ep-path">/api/remember</span>
+      </div>
+      <div class="ep-desc">Saves a new memory entry into Mnemo's memory layer, optionally scoped to a dataset.</div>
+      <div class="ep-grid">
+        <div>
+          <div class="ep-block-label">Request</div>
+          <div class="code-block">{
+  <span class="k">"entry"</span>: <span class="s">"string"</span>,
+  <span class="k">"dataset"</span>: <span class="s">"string (optional)"</span>
+}</div>
+        </div>
+        <div>
+          <div class="ep-block-label">Response</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>: <span class="s">"success"</span>,
+  <span class="k">"message"</span>: <span class="s">"Memory saved!"</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST /api/recall -->
+    <div class="endpoint-card">
+      <div class="ep-top">
+        <span class="method-badge post">POST</span>
+        <span class="ep-path">/api/recall</span>
+      </div>
+      <div class="ep-desc">Queries stored memories and returns relevant matches, optionally translated into the given language.</div>
+      <div class="ep-grid">
+        <div>
+          <div class="ep-block-label">Request</div>
+          <div class="code-block">{
+  <span class="k">"query"</span>: <span class="s">"string"</span>,
+  <span class="k">"language"</span>: <span class="s">"string (optional)"</span>
+}</div>
+        </div>
+        <div>
+          <div class="ep-block-label">Response</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>: <span class="s">"success"</span>,
+  <span class="k">"results"</span>: [<span class="s">"string"</span>, ...]
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST /api/forget -->
+    <div class="endpoint-card">
+      <div class="ep-top">
+        <span class="method-badge post">POST</span>
+        <span class="ep-path">/api/forget</span>
+      </div>
+      <div class="ep-desc">Permanently deletes memories, optionally scoped to a single dataset instead of everything.</div>
+      <div class="ep-grid">
+        <div>
+          <div class="ep-block-label">Request</div>
+          <div class="code-block">{
+  <span class="k">"dataset"</span>: <span class="s">"string (optional)"</span>
+}</div>
+        </div>
+        <div>
+          <div class="ep-block-label">Response</div>
+          <div class="code-block">{
+  <span class="k">"status"</span>: <span class="s">"success"</span>,
+  <span class="k">"message"</span>: <span class="s">"Memory forgotten!"</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /api/stats -->
+    <div class="endpoint-card">
+      <div class="ep-top">
+        <span class="method-badge get">GET</span>
+        <span class="ep-path">/api/stats</span>
+      </div>
+      <div class="ep-desc">Returns current usage stats — memory count, active days, goals and growth score.</div>
+      <div class="ep-grid single">
+        <div>
+          <div class="ep-block-label">Response</div>
+          <div class="code-block">{
+  <span class="k">"memories"</span>: <span class="n">int</span>,
+  <span class="k">"days_active"</span>: <span class="n">int</span>,
+  <span class="k">"goals"</span>: <span class="n">int</span>,
+  <span class="k">"growth_score"</span>: <span class="n">int</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /api/insights -->
+    <div class="endpoint-card">
+      <div class="ep-top">
+        <span class="method-badge get">GET</span>
+        <span class="ep-path">/api/insights</span>
+      </div>
+      <div class="ep-desc">Returns computed life-intelligence scores, a behavioral "DNA" breakdown, and future predictions.</div>
+      <div class="ep-grid single">
+        <div>
+          <div class="ep-block-label">Response</div>
+          <div class="code-block">{
+  <span class="k">"score"</span>: <span class="n">int</span>,
+  <span class="k">"resilience"</span>: <span class="n">int</span>,
+  <span class="k">"growth"</span>: <span class="n">int</span>,
+  <span class="k">"consistency"</span>: <span class="n">int</span>,
+  <span class="k">"positivity"</span>: <span class="n">int</span>,
+  <span class="k">"dna"</span>: {...},
+  <span class="k">"predictions"</span>: [...]
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title" id="try-it"><i class="ti ti-bolt"></i> Try it live</div>
+
+    <div class="try-panel">
+      <div class="try-row">
+        <select class="try-select" id="epSelect" onchange="onEndpointChange()">
+          <option value="POST:/api/remember">POST /api/remember</option>
+          <option value="POST:/api/recall">POST /api/recall</option>
+          <option value="POST:/api/forget">POST /api/forget</option>
+          <option value="GET:/api/stats">GET /api/stats</option>
+          <option value="GET:/api/insights">GET /api/insights</option>
+        </select>
+        <button class="try-btn" id="sendBtn" onclick="tryEndpoint()">
+          <i class="ti ti-send"></i> Send request
+        </button>
+      </div>
+
+      <div id="bodyWrap">
+        <div class="ep-block-label">Request body (JSON)</div>
+        <textarea class="try-textarea" id="reqBody">{
+  "entry": "Today I finished a huge project at work and felt proud."
+}</textarea>
+      </div>
+
+      <div class="try-response-label">Response</div>
+      <div id="statusPill"></div>
+      <div class="try-response" id="tryResponse">Response will appear here after you send a request.</div>
+    </div>
+
+  </div>
+
+  <div class="dash-footer">
+    <span>Mnemo AI · Powered by <strong>Cognee V1</strong> · Open source memory layer</span>
+  </div>
+</div>
+
+<script>
+const defaultBodies = {
+  '/api/remember': '{\n  "entry": "Today I finished a huge project at work and felt proud.",\n  "dataset": ""\n}',
+  '/api/recall': '{\n  "query": "How did I feel about work this month?",\n  "language": "English"\n}',
+  '/api/forget': '{\n  "dataset": ""\n}'
+};
+
+function onEndpointChange(){
+  const val = document.getElementById('epSelect').value;
+  const [method, path] = val.split(':');
+  const bodyWrap = document.getElementById('bodyWrap');
+  if(method === 'GET'){
+    bodyWrap.style.display = 'none';
+  }else{
+    bodyWrap.style.display = 'block';
+    document.getElementById('reqBody').value = defaultBodies[path] || '{}';
+  }
+}
+onEndpointChange();
+
+async function tryEndpoint(){
+  const val = document.getElementById('epSelect').value;
+  const [method, path] = val.split(':');
+  const btn = document.getElementById('sendBtn');
+  const out = document.getElementById('tryResponse');
+  const pill = document.getElementById('statusPill');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> Sending...';
+  out.className = 'try-response';
+  out.textContent = 'Waiting for response...';
+  pill.innerHTML = '';
+
+  const options = { method, headers: { 'Content-Type': 'application/json' } };
+
+  if(method === 'POST'){
+    const raw = document.getElementById('reqBody').value.trim();
+    try{
+      JSON.parse(raw || '{}');
+      options.body = raw || '{}';
+    }catch(e){
+      out.className = 'try-response error';
+      out.textContent = 'Invalid JSON in request body:\n' + e.message;
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-send"></i> Send request';
+      return;
+    }
+  }
+
+  try{
+    const res = await fetch(path, options);
+    const text = await res.text();
+    let pretty = text;
+    try{ pretty = JSON.stringify(JSON.parse(text), null, 2); }catch(e){}
+
+    pill.innerHTML = `<span class="status-pill ${res.ok ? 'ok' : 'fail'}">
+      <i class="ti ${res.ok ? 'ti-check' : 'ti-x'}"></i> ${res.status} ${res.statusText}
+    </span>`;
+    out.className = 'try-response ' + (res.ok ? 'success' : 'error');
+    out.textContent = pretty;
+  }catch(e){
+    pill.innerHTML = `<span class="status-pill fail"><i class="ti ti-x"></i> Network error</span>`;
+    out.className = 'try-response error';
+    out.textContent = 'Request failed: ' + e.message;
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send"></i> Send request';
+  }
+}
+</script>
+
+</body>
+</html>

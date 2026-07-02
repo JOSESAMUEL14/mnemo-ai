@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemo AI — Insights</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script>
+  (function() {
+    const savedTheme = localStorage.getItem('mnemo_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  })();
+</script>
+<script src="/static/js/theme.js" defer></script>
+<style>
+:root {
+  --bg-main: #07071a;
+  --bg-sidebar: rgba(10,10,22,0.98);
+  --bg-topbar: rgba(8,8,20,0.95);
+  --bg-panel: rgba(255,255,255,0.03);
+  --bg-card: rgba(255,255,255,0.04);
+  --border-card: rgba(255,255,255,0.08);
+  --border-subtle: rgba(255,255,255,0.05);
+  --border-panel: rgba(255,255,255,0.07);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.6);
+  --text-muted: rgba(255,255,255,0.35);
+  --text-ghost: rgba(255,255,255,0.2);
+  --accent-purple: #7c3aed;
+  --accent-purple-light: #a78bfa;
+  --accent-blue: #3b82f6;
+  --score-gradient-start: #c4b5fd;
+  --score-gradient-end: #60a5fa;
+  --hero-gradient: linear-gradient(135deg,rgba(124,58,237,0.15),rgba(59,130,246,0.08));
+}
+
+[data-theme="light"] {
+  --bg-main: #f5f5fa;
+  --bg-sidebar: rgba(240,240,245,0.98);
+  --bg-topbar: rgba(245,245,250,0.95);
+  --bg-panel: rgba(0,0,0,0.02);
+  --bg-card: rgba(0,0,0,0.03);
+  --border-card: rgba(0,0,0,0.08);
+  --border-subtle: rgba(0,0,0,0.06);
+  --border-panel: rgba(0,0,0,0.08);
+  --text-primary: #1a1a2e;
+  --text-secondary: rgba(26,26,46,0.6);
+  --text-muted: rgba(26,26,46,0.45);
+  --text-ghost: rgba(26,26,46,0.25);
+  --accent-purple: #7c3aed;
+  --accent-purple-light: #6d28d9;
+  --accent-blue: #3b82f6;
+  --score-gradient-start: #6d28d9;
+  --score-gradient-end: #2563eb;
+  --hero-gradient: linear-gradient(135deg,rgba(124,58,237,0.08),rgba(59,130,246,0.05));
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-main);color:var(--text-primary);min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg-sidebar);border-right:1px solid var(--border-subtle);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:fixed;top:0;left:0;bottom:0;width:200px;overflow-y:auto;z-index:50}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:10px;margin-bottom:16px}
+.sb-logo-icon{position:relative;width:32px;height:32px;border-radius:10px;background:var(--bg-main);border:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon::before{content:'';position:absolute;width:20px;height:20px;border:1px dashed var(--accent-purple-light);opacity:0.4;border-radius:50%}
+.sb-logo-icon::after{content:'';position:absolute;width:8px;height:8px;background:var(--accent-purple-light);border-radius:50%;box-shadow:0 0 8px var(--accent-purple)}
+.sb-logo-text{font-size:14px;font-weight:500}
+.sb-logo-sub{font-size:9px;color:var(--text-muted)}
+.sb-section{font-size:9px;color:var(--text-ghost);padding:10px 10px 3px;letter-spacing:0.08em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:var(--text-secondary);transition:all 0.15s;text-decoration:none;position:relative}
+.sb-item:hover{background:var(--bg-card);color:var(--text-primary)}
+.sb-item.active{background:rgba(124,58,237,0.15);color:var(--accent-purple-light)}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:var(--accent-purple);border-radius:0 2px 2px 0}
+.sb-item i{font-size:15px}
+.sb-badge{margin-left:auto;background:rgba(124,58,237,0.3);color:var(--accent-purple-light);font-size:9px;padding:1px 5px;border-radius:8px}
+.sb-footer{margin-top:auto;padding:10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.15);border-radius:10px}
+.sb-footer-label{font-size:10px;color:var(--text-secondary);margin-bottom:2px}
+.sb-footer-val{font-size:12px;color:var(--accent-purple-light);font-weight:500}
+.sb-mem-bar{height:3px;background:var(--border-subtle);border-radius:2px;margin-top:6px}
+.sb-mem-fill{height:100%;width:0%;background:linear-gradient(to right,var(--accent-purple),var(--accent-blue));border-radius:2px;transition:width 1s ease}
+.lang-select{width:100%;background:var(--bg-card);border:1px solid var(--border-card);border-radius:9px;padding:8px 12px;color:var(--text-primary);font-size:12px;outline:none;cursor:pointer}
+.lang-select option{background:var(--bg-main);color:var(--text-primary)}
+
+/* MAIN LAYOUT */
+.main{margin-left:200px;display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border-subtle);background:var(--bg-topbar);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px);flex-shrink:0}
+.topbar-left h2{font-size:14px;font-weight:500;color:var(--text-primary)}
+.topbar-left p{font-size:11px;color:var(--text-muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.top-chip{display:flex;align-items:center;gap:5px;background:var(--bg-card);border:1px solid var(--border-card);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--text-secondary);cursor:pointer;transition:all 0.2s;font-family:inherit}
+.top-chip:hover{background:var(--border-card);color:var(--text-primary)}
+.top-chip.accent{background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);color:var(--accent-purple-light)}
+.top-lang-select{background:var(--bg-card);border:1px solid var(--border-card);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--text-secondary);outline:none;cursor:pointer}
+.top-lang-select option{background:var(--bg-main);color:var(--text-primary)}
+
+/* INSIGHTS CONTENT */
+.content-scroll{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+.content-scroll::-webkit-scrollbar{width:6px}
+.content-scroll::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.2);border-radius:3px}
+
+.panel{background:var(--bg-panel);border:1px solid var(--border-panel);border-radius:14px;padding:20px}
+.panel-title{font-size:13px;font-weight:500;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.panel-sub{font-size:11px;color:var(--text-muted);margin-top:2px;margin-bottom:14px}
+.panel-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* HERO SCORE CARD */
+.hero-card{background:var(--hero-gradient);border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.hero-left{flex:1;min-width:220px}
+.hero-score-row{display:flex;align-items:baseline;gap:10px}
+.hero-score-num{font-size:52px;font-weight:600;letter-spacing:-2px;background:linear-gradient(135deg,var(--score-gradient-start),var(--score-gradient-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-score-max{font-size:16px;color:var(--text-ghost)}
+.hero-score-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+.hero-bar{height:7px;background:var(--border-subtle);border-radius:4px;margin-top:14px;max-width:360px;overflow:hidden}
+.hero-bar-fill{height:100%;border-radius:4px;background:linear-gradient(to right,var(--accent-purple),var(--accent-blue),#60a5fa);width:0%;transition:width 1.4s ease}
+.hero-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.mini-stat{background:var(--bg-card);border:1px solid var(--border-panel);border-radius:12px;padding:12px 16px;min-width:120px;text-align:center}
+.mini-stat-val{font-size:20px;font-weight:600;color:var(--text-primary)}
+.mini-stat-lbl{font-size:10px;color:var(--text-secondary);margin-top:2px;text-transform:uppercase;letter-spacing:0.04em}
+
+/* GRID 2-COL */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 16px;color:var(--text-muted);font-size:12px;min-height:160px;gap:8px}
+.empty-state i{font-size:30px;color:rgba(124,58,237,0.35)}
+
+/* EMOTION CHART */
+.emotion-bars{display:flex;flex-direction:column;gap:10px;padding-top:6px}
+.emo-bar-row{display:flex;align-items:center;gap:10px}
+.emo-bar-label{font-size:11px;color:var(--text-secondary);width:84px;flex-shrink:0}
+.emo-bar-track{flex:1;height:8px;background:var(--border-subtle);border-radius:4px;overflow:hidden}
+.emo-bar-fill{height:100%;border-radius:4px;background:linear-gradient(to right,var(--accent-purple),var(--accent-blue));width:0%;transition:width 1.2s ease}
+.emo-bar-pct{font-size:11px;color:var(--text-secondary);width:36px;text-align:right;flex-shrink:0}
+
+/* GRAPH SNAPSHOT */
+.graph-snapshot-box{min-height:160px;border-radius:12px;background:rgba(255,255,255,0.01);border:1px dashed rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.btn{padding:9px 16px;border-radius:10px;font-size:12px;cursor:pointer;border:none;font-weight:500;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.btn.primary{background:linear-gradient(135deg,var(--accent-purple),var(--accent-blue));color:#fff}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.3)}
+.btn.primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* MEMORY DNA */
+.dna-trait{margin-bottom:14px}
+.dna-trait:last-child{margin-bottom:0}
+.dna-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.dna-name{font-size:12px;color:var(--text-secondary)}
+.dna-pct{font-size:12px;color:var(--text-primary);font-weight:500}
+.dna-track{height:7px;background:var(--border-subtle);border-radius:4px;overflow:hidden}
+.dna-fill{height:100%;border-radius:4px;width:0%;transition:width 1.4s ease}
+.dna-fill.resilience{background:linear-gradient(to right,var(--accent-purple),var(--accent-purple-light))}
+.dna-fill.creativity{background:linear-gradient(to right,var(--accent-blue),#60a5fa)}
+.dna-fill.patience{background:linear-gradient(to right,#34d399,#6ee7b7)}
+.dna-fill.determination{background:linear-gradient(to right,#fbbf24,#fcd34d)}
+.dna-fill.empathy{background:linear-gradient(to right,#f472b6,#fb7185)}
+
+/* PREDICT */
+.predict-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:8px}
+.predict-row:last-child{margin-bottom:0}
+.predict-text{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.predict-conf{font-size:11px;color:var(--accent-purple-light);background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.25);padding:4px 10px;border-radius:8px;flex-shrink:0;font-weight:500}
+
+/* MNEMO MIRROR */
+.mirror-card{display:none;margin-top:18px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.18);border-radius:14px;padding:28px;position:relative;overflow:hidden}
+.mirror-card.show{display:block;animation:fadeIn 0.5s ease}
+.mirror-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#7c3aed,#a78bfa,#60a5fa)}
+.mirror-text{font-size:14px;line-height:1.9;color:rgba(255,255,255,0.82);white-space:pre-wrap}
+.mirror-cursor{display:inline-block;width:2px;height:16px;background:#a78bfa;margin-left:2px;vertical-align:middle;animation:blink 0.9s infinite}
+.mirror-empty{text-align:center;padding:20px;color:var(--text-muted);font-size:12px;line-height:1.6}
+.mirror-empty i{font-size:26px;display:block;margin-bottom:8px;color:rgba(124,58,237,0.35)}
+
+/* ANIMATIONS */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.typing-dots{display:inline-flex;gap:3px;padding:4px 0}
+.td{width:5px;height:5px;border-radius:50%;background:rgba(167,139,250,0.6);animation:bounce 1.4s infinite;display:inline-block}
+.td:nth-child(2){animation-delay:0.2s}
+.td:nth-child(3){animation-delay:0.4s}
+
+@media (max-width:900px){
+  .grid-2{grid-template-columns:1fr}
+  .hero-card{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div>
+      <div class="sb-logo-text">Mnemo AI</div>
+      <div class="sb-logo-sub">Life Intelligence</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Main</div>
+  <a href="/dashboard" class="sb-item">
+    <i class="ti ti-layout-dashboard"></i> Dashboard
+  </a>
+  <a href="/chat" class="sb-item">
+    <i class="ti ti-message-circle"></i> Chat
+    <span class="sb-badge">AI</span>
+  </a>
+  <a href="/journal" class="sb-item">
+    <i class="ti ti-notebook"></i> Journal
+  </a>
+  <a href="/insights" class="sb-item active">
+    <i class="ti ti-chart-line"></i> Insights
+  </a>
+
+  <div class="sb-section">Memory</div>
+  <a href="/goals" class="sb-item">
+    <i class="ti ti-target"></i> Goals
+  </a>
+  <a href="/timeline" class="sb-item">
+    <i class="ti ti-timeline"></i> Timeline
+  </a>
+  <a href="/future" class="sb-item">
+    <i class="ti ti-mail"></i> Future self
+  </a>
+  <a href="/forget" class="sb-item">
+    <i class="ti ti-trash"></i> Forget & heal
+  </a>
+
+  <div class="sb-section">Language</div>
+  <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+    <option value="English">🇬🇧 English</option>
+    <option value="Tamil">🇮🇳 Tamil</option>
+    <option value="Hindi">🇮🇳 Hindi</option>
+    <option value="Telugu">🇮🇳 Telugu</option>
+    <option value="Spanish">🇪🇸 Spanish</option>
+    <option value="French">🇫🇷 French</option>
+    <option value="German">🇩🇪 German</option>
+    <option value="Arabic">🇸🇦 Arabic</option>
+    <option value="Japanese">🇯🇵 Japanese</option>
+  </select>
+
+  <div class="sb-footer" style="margin-top:16px">
+    <div class="sb-footer-label">Memory active</div>
+    <div class="sb-footer-val" id="memCount">Loading...</div>
+    <div class="sb-mem-bar"><div class="sb-mem-fill" id="memBar"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Insights</h2>
+      <p>Patterns from your life graph</p>
+    </div>
+    <div class="topbar-right">
+      <button onclick="toggleTheme()" class="top-chip" aria-label="Toggle Theme" style="background:transparent;cursor:pointer;padding:6px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;color:var(--text-primary);border:1px solid var(--border-card);">
+        <i id="theme-toggle-icon" class="ti ti-sun"></i>
+      </button>
+      <select class="top-lang-select" id="topLangSelect" onchange="setLanguage(this.value)">
+        <option value="English">🇬🇧 English</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+      </select>
+      <div class="top-chip" onclick="loadInsights()">
+        <i class="ti ti-refresh" style="font-size:11px"></i> Refresh
+      </div>
+    </div>
+  </div>
+
+  <div class="content-scroll">
+
+    <!-- HERO SCORE -->
+    <div class="hero-card">
+      <div class="hero-left">
+        <div class="hero-score-row">
+          <div class="hero-score-num" id="bigScore">--</div>
+          <div class="hero-score-max">/ 100</div>
+        </div>
+        <div class="hero-score-label">Your Mnemo Score</div>
+        <div class="hero-bar"><div class="hero-bar-fill" id="bigScoreFill"></div></div>
+      </div>
+      <div class="hero-stats">
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="statResilience">--%</div>
+          <div class="mini-stat-lbl">Resilience</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="statGrowth">--%</div>
+          <div class="mini-stat-lbl">Growth</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="statConsistency">--%</div>
+          <div class="mini-stat-lbl">Consistency</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="statPositivity">--%</div>
+          <div class="mini-stat-lbl">Positivity</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIFE PATTERNS GRID -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">
+          <div class="panel-dot" style="background:var(--accent-purple-light)"></div>
+          Emotional patterns
+        </div>
+        <div class="panel-sub">How your mood has shifted recently</div>
+        <div id="emotionChart">
+          <div class="empty-state">
+            <i class="ti ti-mood-smile"></i>
+            Patterns will appear after you add memories
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <div class="panel-dot" style="background:var(--accent-blue)"></div>
+          Memory graph snapshot
+        </div>
+        <div class="panel-sub">A glimpse of your knowledge graph</div>
+        <div id="graphSnapshot" class="graph-snapshot-box">
+          <div class="empty-state" style="min-height:auto;padding:16px">
+            <i class="ti ti-affiliate"></i>
+            Your knowledge graph will render here
+          </div>
+        </div>
+        <button class="btn primary" onclick="openGraph()">
+          <i class="ti ti-arrows-maximize"></i> Open full graph
+        </button>
+      </div>
+    </div>
+
+    <!-- MEMORY DNA -->
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#34d399"></div>
+        Memory DNA
+      </div>
+      <div class="panel-sub">Your unique fingerprint built from memories</div>
+      <div id="dnaContent">
+        <div class="empty-state">
+          <i class="ti ti-dna"></i>
+          Write a few journal entries to generate your Memory DNA
+        </div>
+      </div>
+    </div>
+
+    <!-- MNEMO PREDICT -->
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#fbbf24"></div>
+        Mnemo Predict
+      </div>
+      <div class="panel-sub">AI predictions based on your patterns</div>
+      <div id="predictContent">
+        <div class="empty-state">
+          <i class="ti ti-crystal-ball"></i>
+          Predictions unlock after 5+ memories
+        </div>
+      </div>
+    </div>
+
+    <!-- MNEMO MIRROR -->
+    <div class="panel" style="margin-bottom:8px">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#a78bfa"></div>
+        Mnemo Mirror
+      </div>
+      <div class="panel-sub">See who you truly are, through Mnemo's eyes</div>
+      <button class="btn primary" id="revealMirrorBtn" onclick="revealMirror()">
+        <i class="ti ti-eye"></i> Reveal my mirror
+      </button>
+      <div class="mirror-card" id="mirrorCard">
+        <div class="mirror-text" id="mirrorText"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ---------- LANGUAGE ---------- */
+function setLanguage(lang){
+  localStorage.setItem('mnemo_language', lang);
+  document.getElementById('langSelect').value = lang;
+  document.getElementById('topLangSelect').value = lang;
+}
+function getLanguage(){
+  return localStorage.getItem('mnemo_language') || 'English';
+}
+(function initLang(){
+  const saved = getLanguage();
+  document.getElementById('langSelect').value = saved;
+  document.getElementById('topLangSelect').value = saved;
+})();
+
+/* ---------- MEMORY COUNT ---------- */
+async function loadStats(){
+  try{
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    const pct = Math.min((data.memories || 0) / 100 * 100, 100);
+    document.getElementById('memBar').style.width = pct + '%';
+    document.getElementById('memCount').textContent = (data.memories || 0) + ' memories';
+  }catch(e){
+    document.getElementById('memCount').textContent = '0 memories';
+  }
+}
+
+/* ---------- OPEN GRAPH ---------- */
+function openGraph(){
+  alert('Full memory graph view is coming soon — this will show an interactive map of how your memories connect.');
+}
+
+/* ---------- RENDER HELPERS ---------- */
+function renderEmotionChart(emotions){
+  const container = document.getElementById('emotionChart');
+  if(!emotions || Object.keys(emotions).length === 0){
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-mood-smile"></i>Patterns will appear after you add memories</div>';
+    return;
+  }
+  const colorMap = {
+    Happy:'#34d399', Determined:'var(--accent-purple)', Sad:'var(--accent-blue)', Anxious:'#fbbf24',
+    Tired:'var(--accent-purple-light)', Energized:'#f472b6', Frustrated:'#f87171', Growing:'#34d399'
+  };
+  let html = '<div class="emotion-bars">';
+  Object.entries(emotions).forEach(([mood, pct])=>{
+    const color = colorMap[mood] || 'var(--accent-purple)';
+    html += '<div class="emo-bar-row">' +
+      '<div class="emo-bar-label">'+mood+'</div>' +
+      '<div class="emo-bar-track"><div class="emo-bar-fill" style="width:'+pct+'%;background:linear-gradient(to right,'+color+',var(--accent-blue))"></div></div>' +
+      '<div class="emo-bar-pct">'+pct+'%</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderDna(dna){
+  const container = document.getElementById('dnaContent');
+  if(!dna){
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-dna"></i>Write a few journal entries to generate your Memory DNA</div>';
+    return;
+  }
+  const traits = [
+    {key:'resilience', label:'Resilience', cls:'resilience'},
+    {key:'creativity', label:'Creativity', cls:'creativity'},
+    {key:'patience', label:'Patience', cls:'patience'},
+    {key:'determination', label:'Determination', cls:'determination'},
+    {key:'empathy', label:'Empathy', cls:'empathy'}
+  ];
+  let html = '';
+  traits.forEach(t=>{
+    const val = dna[t.key] || 0;
+    html += '<div class="dna-trait">' +
+      '<div class="dna-top"><span class="dna-name">'+t.label+'</span><span class="dna-pct">'+val+'%</span></div>' +
+      '<div class="dna-track"><div class="dna-fill '+t.cls+'" style="width:'+val+'%"></div></div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function renderPredictions(predictions){
+  const container = document.getElementById('predictContent');
+  if(!predictions || predictions.length === 0){
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-crystal-ball"></i>Predictions unlock after 5+ memories</div>';
+    return;
+  }
+  let html = '';
+  predictions.slice(0,3).forEach(p=>{
+    html += '<div class="predict-row">' +
+      '<div class="predict-text">'+p.text+'</div>' +
+      '<div class="predict-conf">'+p.confidence+'% confident</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+/* ---------- LOAD INSIGHTS ---------- */
+async function loadInsights(){
+  try{
+    const res = await fetch('/api/insights');
+    const data = await res.json();
+    const score = data.score || 0;
+    if(score > 0){
+      document.getElementById('bigScore').textContent = score;
+      document.getElementById('bigScoreFill').style.width = score + '%';
+    }
+    document.getElementById('statResilience').textContent = (data.resilience != null) ? data.resilience + '%' : '--%';
+    document.getElementById('statGrowth').textContent = (data.growth != null) ? data.growth + '%' : '--%';
+    document.getElementById('statConsistency').textContent = (data.consistency != null) ? data.consistency + '%' : '--%';
+    document.getElementById('statPositivity').textContent = (data.positivity != null) ? data.positivity + '%' : '--%';
+    renderEmotionChart(data.emotions);
+    renderDna(data.dna);
+    renderPredictions(data.predictions);
+  }catch(e){
+    console.error('Could not load insights:', e);
+  }
+}
+
+/* ---------- TYPE TEXT (letter-by-letter reveal) ---------- */
+function typeText(element, text, speed){
+  return new Promise(resolve=>{
+    element.innerHTML = '<span></span><span class="mirror-cursor"></span>';
+    const span = element.querySelector('span');
+    let i = 0;
+    const interval = setInterval(()=>{
+      if(i < text.length){
+        span.textContent += text[i];
+        i++;
+      } else {
+        clearInterval(interval);
+        const cursor = element.querySelector('.mirror-cursor');
+        if(cursor) cursor.remove();
+        resolve();
+      }
+    }, speed || 20);
+  });
+}
+
+/* ---------- REVEAL MIRROR ---------- */
+async function revealMirror(){
+  const btn = document.getElementById('revealMirrorBtn');
+  const card = document.getElementById('mirrorCard');
+  const textEl = document.getElementById('mirrorText');
+
+  btn.disabled = true;
+  card.classList.add('show');
+  textEl.innerHTML = '<div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+
+  try{
+    const res = await fetch('/api/mirror', { method: 'POST' });
+    const data = await res.json();
+
+    if(data.status === 'empty' || !data.mirror_text){
+      textEl.innerHTML = '<div class="mirror-empty"><i class="ti ti-mood-empty"></i>Write a few memories first — Mnemo needs to know you better.</div>';
+      return;
+    }
+
+    textEl.innerHTML = '';
+    await typeText(textEl, data.mirror_text, 18);
+
+  }catch(e){
+    textEl.innerHTML = '<div class="mirror-empty"><i class="ti ti-alert-circle"></i>Could not reach Mnemo right now. Please try again.</div>';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------- INIT ---------- */
+loadStats();
+loadInsights();
+</script>
+</body>
+</html>

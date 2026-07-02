@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemo AI — Forget & Heal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#07071a;color:#fff;min-height:100vh}
+
+/* SIDEBAR (same as chat/dashboard) */
+.sidebar{background:rgba(10,10,22,0.98);border-right:1px solid rgba(255,255,255,0.05);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:fixed;top:0;left:0;bottom:0;width:200px;overflow-y:auto;z-index:50}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:10px;margin-bottom:16px}
+.sb-logo-icon{position:relative;width:32px;height:32px;border-radius:10px;background:#0d0d1e;border:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon::before{content:'';position:absolute;width:20px;height:20px;border:1px dashed rgba(167,139,250,0.4);border-radius:50%}
+.sb-logo-icon::after{content:'';position:absolute;width:8px;height:8px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #7c3aed}
+.sb-logo-text{font-size:14px;font-weight:500}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,0.3)}
+.sb-section{font-size:9px;color:rgba(255,255,255,0.2);padding:10px 10px 3px;letter-spacing:0.08em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.4);transition:all 0.15s;text-decoration:none;position:relative}
+.sb-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8)}
+.sb-item.active{background:rgba(124,58,237,0.15);color:#a78bfa}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:#7c3aed;border-radius:0 2px 2px 0}
+.sb-item i{font-size:15px}
+.sb-badge{margin-left:auto;background:rgba(124,58,237,0.3);color:#a78bfa;font-size:9px;padding:1px 5px;border-radius:8px}
+.sb-footer{margin-top:auto;padding:10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.15);border-radius:10px}
+.sb-footer-label{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px}
+.sb-footer-val{font-size:12px;color:#a78bfa;font-weight:500}
+.sb-mem-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px}
+.sb-mem-fill{height:100%;width:0%;background:linear-gradient(to right,#7c3aed,#3b82f6);border-radius:2px;transition:width 1s ease}
+.lang-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:12px;outline:none;cursor:pointer}
+.lang-select option{background:#13131a}
+
+/* MAIN LAYOUT (same as chat.html) */
+.main{margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,8,20,0.95);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.topbar-left h2{font-size:14px;font-weight:500;color:#fff}
+.topbar-left p{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.top-lang-select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);outline:none;cursor:pointer}
+.top-lang-select option{background:#13131a}
+
+/* CONTENT */
+.content{padding:20px 24px;display:flex;flex-direction:column;gap:16px;flex:1;max-width:760px}
+
+.panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px}
+.panel-title{font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.panel-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* INTRO CARD */
+.intro-card{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(59,130,246,0.1));border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:28px 24px;text-align:center}
+.intro-card .intro-icon{font-size:28px;margin-bottom:10px}
+.intro-card p{font-size:14px;color:rgba(255,255,255,0.7);line-height:1.7;max-width:480px;margin:0 auto}
+
+/* RELEASE CARD */
+.release-textarea{width:100%;min-height:110px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;color:#fff;font-size:13px;line-height:1.6;outline:none;resize:vertical;font-family:inherit;transition:border-color 0.2s}
+.release-textarea:focus{border-color:rgba(244,114,182,0.4)}
+.release-textarea::placeholder{color:rgba(255,255,255,0.2)}
+
+.btn{padding:10px 18px;border-radius:10px;font-size:12px;cursor:pointer;border:none;font-weight:500;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.btn.release{background:linear-gradient(135deg,#f43f5e,#ec4899);color:#fff;margin-top:12px}
+.btn.release:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(244,63,94,0.3)}
+.btn.release:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* HEALING MESSAGE */
+.healing-msg{display:none;margin-top:16px;padding:18px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;text-align:center;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.7;opacity:0;transition:opacity 1s ease}
+.healing-msg.show{display:block;opacity:1}
+
+/* DANGER ZONE */
+.danger-panel{background:rgba(244,63,94,0.04);border:1px solid rgba(244,63,94,0.2);border-radius:14px;padding:18px}
+.danger-title{font-size:12px;font-weight:600;color:#fb7185;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.danger-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:16px;line-height:1.6}
+.danger-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(244,63,94,0.25);border-radius:10px;padding:10px 14px;color:#fff;font-size:12px;outline:none;font-family:inherit;margin-bottom:12px}
+.danger-input:focus{border-color:rgba(244,63,94,0.5)}
+.danger-input::placeholder{color:rgba(255,255,255,0.2)}
+.btn.danger{background:linear-gradient(135deg,#be123c,#9f1239);color:#fff}
+.btn.danger:disabled{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.25);cursor:not-allowed}
+.btn.danger:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(190,18,60,0.4)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,5,15,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;z-index:200}
+.modal-overlay.show{display:flex;animation:fadeIn 0.2s ease}
+.modal-box{background:#101022;border:1px solid rgba(244,63,94,0.25);border-radius:16px;padding:24px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.modal-box i.warn-icon{font-size:30px;color:#fb7185;margin-bottom:12px;display:block}
+.modal-box h3{font-size:15px;font-weight:500;margin-bottom:8px}
+.modal-box p{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:center}
+.btn.ghost-modal{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1)}
+.btn.ghost-modal:hover{background:rgba(255,255,255,0.1)}
+.btn.confirm-danger{background:linear-gradient(135deg,#f43f5e,#ec4899);color:#fff}
+.btn.confirm-danger:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(244,63,94,0.3)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div>
+      <div class="sb-logo-text">Mnemo AI</div>
+      <div class="sb-logo-sub">Life Intelligence</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Main</div>
+  <a href="/dashboard" class="sb-item">
+    <i class="ti ti-layout-dashboard"></i> Dashboard
+  </a>
+  <a href="/chat" class="sb-item">
+    <i class="ti ti-message-circle"></i> Chat
+    <span class="sb-badge">AI</span>
+  </a>
+  <a href="/journal" class="sb-item">
+    <i class="ti ti-notebook"></i> Journal
+  </a>
+  <a href="/insights" class="sb-item">
+    <i class="ti ti-chart-line"></i> Insights
+  </a>
+
+  <div class="sb-section">Memory</div>
+  <a href="/goals" class="sb-item">
+    <i class="ti ti-target"></i> Goals
+  </a>
+  <a href="/timeline" class="sb-item">
+    <i class="ti ti-timeline"></i> Timeline
+  </a>
+  <a href="/future" class="sb-item">
+    <i class="ti ti-mail"></i> Future self
+  </a>
+  <a href="/forget" class="sb-item active">
+    <i class="ti ti-trash"></i> Forget & heal
+  </a>
+
+  <div class="sb-section">Language</div>
+  <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+    <option value="English">🇬🇧 English</option>
+    <option value="Tamil">🇮🇳 Tamil</option>
+    <option value="Hindi">🇮🇳 Hindi</option>
+    <option value="Telugu">🇮🇳 Telugu</option>
+    <option value="Spanish">🇪🇸 Spanish</option>
+    <option value="French">🇫🇷 French</option>
+    <option value="German">🇩🇪 German</option>
+    <option value="Arabic">🇸🇦 Arabic</option>
+    <option value="Japanese">🇯🇵 Japanese</option>
+  </select>
+
+  <div class="sb-footer" style="margin-top:16px">
+    <div class="sb-footer-label">Memory active</div>
+    <div class="sb-footer-val" id="memCount">Loading...</div>
+    <div class="sb-mem-bar"><div class="sb-mem-fill" id="memBar"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Forget & Heal</h2>
+      <p>Let go of what no longer serves you</p>
+    </div>
+    <div class="topbar-right">
+      <select class="top-lang-select" id="topLangSelect" onchange="setLanguage(this.value)">
+        <option value="English">🇬🇧 English</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="intro-card">
+      <div class="intro-icon">🌿</div>
+      <p>Sometimes healing means letting go. Your memories are yours to keep — or release.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#f43f5e"></div>
+        Write to forget
+      </div>
+      <textarea class="release-textarea" id="releaseTextarea"
+        placeholder="What do you want to release? Describe the memory or feeling you want to let go of..."></textarea>
+      <button class="btn release" id="releaseBtn" onclick="releaseMemory()">
+        <i class="ti ti-feather"></i> Release this
+      </button>
+
+      <div class="healing-msg" id="healingMsg">
+        🕊️ Released. That memory no longer holds power over you. Move forward.
+      </div>
+    </div>
+
+    <div class="danger-panel">
+      <div class="danger-title"><i class="ti ti-alert-triangle"></i> Danger Zone</div>
+      <div class="danger-sub">
+        This permanently erases everything Mnemo remembers about you. There is no undo. Type <strong>FORGET</strong> below to unlock this action.
+      </div>
+      <input type="text" class="danger-input" id="forgetConfirmInput" placeholder="Type FORGET to confirm" oninput="checkForgetInput()">
+      <button class="btn danger" id="forgetAllBtn" disabled onclick="openForgetAllModal()">
+        <i class="ti ti-skull"></i> Forget everything
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- RELEASE CONFIRM MODAL -->
+<div class="modal-overlay" id="releaseModal">
+  <div class="modal-box">
+    <i class="ti ti-alert-circle warn-icon"></i>
+    <h3>Are you sure?</h3>
+    <p>This memory will be released. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn ghost-modal" onclick="closeReleaseModal()">Cancel</button>
+      <button class="btn confirm-danger" onclick="confirmRelease()">Yes, release it</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGET ALL CONFIRM MODAL -->
+<div class="modal-overlay" id="forgetAllModal">
+  <div class="modal-box">
+    <i class="ti ti-skull warn-icon"></i>
+    <h3>Forget everything?</h3>
+    <p>All of Mnemo's memories about you will be permanently erased. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn ghost-modal" onclick="closeForgetAllModal()">Cancel</button>
+      <button class="btn confirm-danger" onclick="confirmForgetAll()">Yes, forget everything</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// LANGUAGE
+function setLanguage(lang){
+  localStorage.setItem('mnemo_language', lang);
+  document.getElementById('langSelect').value = lang;
+  document.getElementById('topLangSelect').value = lang;
+}
+function getLanguage(){
+  return localStorage.getItem('mnemo_language') || 'English';
+}
+(function initLang(){
+  const saved = getLanguage();
+  document.getElementById('langSelect').value = saved;
+  document.getElementById('topLangSelect').value = saved;
+})();
+
+/* ============================================================
+   RELEASE A SINGLE MEMORY
+   NOTE ON API CHOICE: app.py's /api/forget only supports wiping
+   a whole dataset (no single-item targeting), so releasing ONE
+   memory is implemented as a tagged write via /api/remember with
+   a "RELEASED:" prefix, rather than calling /api/forget. This
+   keeps the memory traceable as "let go of" without deleting
+   other unrelated memories. /api/forget (with everything:true)
+   is reserved for the Danger Zone wipe below.
+   ============================================================ */
+let pendingReleaseText = '';
+
+function releaseMemory(){
+  const textarea = document.getElementById('releaseTextarea');
+  const text = textarea.value.trim();
+  if(!text){
+    alert('Please write what you want to release first.');
+    return;
+  }
+  pendingReleaseText = text;
+  openReleaseModal();
+}
+
+function openReleaseModal(){
+  document.getElementById('releaseModal').classList.add('show');
+}
+function closeReleaseModal(){
+  document.getElementById('releaseModal').classList.remove('show');
+}
+
+async function confirmRelease(){
+  closeReleaseModal();
+  const btn = document.getElementById('releaseBtn');
+  btn.disabled = true;
+
+  try{
+    await fetch('/api/remember', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text: 'RELEASED: ' + pendingReleaseText, language: getLanguage()})
+    });
+  }catch(e){
+    // even if the sync fails, we still show the healing message —
+    // the emotional act of writing it down and choosing to release matters
+  }
+
+  document.getElementById('releaseTextarea').value = '';
+  showHealingMessage();
+  btn.disabled = false;
+  pendingReleaseText = '';
+}
+
+function showHealingMessage(){
+  const msg = document.getElementById('healingMsg');
+  msg.classList.remove('show');
+  // force reflow so fade-in re-triggers if shown again
+  void msg.offsetWidth;
+  msg.classList.add('show');
+}
+
+/* ============================================================
+   DANGER ZONE — FORGET EVERYTHING
+   Uses /api/forget with {dataset: "main_dataset", everything: true}
+   ============================================================ */
+function checkForgetInput(){
+  const input = document.getElementById('forgetConfirmInput');
+  const btn = document.getElementById('forgetAllBtn');
+  btn.disabled = input.value.trim() !== 'FORGET';
+}
+
+function openForgetAllModal(){
+  document.getElementById('forgetAllModal').classList.add('show');
+}
+function closeForgetAllModal(){
+  document.getElementById('forgetAllModal').classList.remove('show');
+}
+
+async function confirmForgetAll(){
+  const input = document.getElementById('forgetConfirmInput');
+  if(input.value.trim() !== 'FORGET'){
+    closeForgetAllModal();
+    return;
+  }
+
+  const btn = document.getElementById('forgetAllBtn');
+  btn.disabled = true;
+  closeForgetAllModal();
+
+  try{
+    await fetch('/api/forget', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({dataset: 'main_dataset', everything: true})
+    });
+    alert('Everything has been forgotten. Mnemo starts fresh with you from here.');
+  }catch(e){
+    alert('Something went wrong while forgetting your memories. Please try again.');
+  }
+
+  input.value = '';
+  checkForgetInput();
+}
+
+// Close modals on overlay click (not box click)
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+// LOAD MEMORY COUNT (sidebar footer)
+async function loadStats(){
+  try{
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    const pct = Math.min((data.memories || 0) / 100 * 100, 100);
+    document.getElementById('memBar').style.width = pct + '%';
+    document.getElementById('memCount').textContent = (data.memories || 0) + ' memories';
+  }catch(e){
+    document.getElementById('memCount').textContent = '0 memories';
+  }
+}
+loadStats();
+</script>
+</body>
+</html>

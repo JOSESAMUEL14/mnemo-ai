@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mnemo AI — Goals</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#07071a;color:#fff;min-height:100vh}
+
+/* SIDEBAR (same as chat/dashboard) */
+.sidebar{background:rgba(10,10,22,0.98);border-right:1px solid rgba(255,255,255,0.05);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:fixed;top:0;left:0;bottom:0;width:200px;overflow-y:auto;z-index:50}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:10px;margin-bottom:16px}
+.sb-logo-icon{position:relative;width:32px;height:32px;border-radius:10px;background:#0d0d1e;border:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon::before{content:'';position:absolute;width:20px;height:20px;border:1px dashed rgba(167,139,250,0.4);border-radius:50%}
+.sb-logo-icon::after{content:'';position:absolute;width:8px;height:8px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #7c3aed}
+.sb-logo-text{font-size:14px;font-weight:500}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,0.3)}
+.sb-section{font-size:9px;color:rgba(255,255,255,0.2);padding:10px 10px 3px;letter-spacing:0.08em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.4);transition:all 0.15s;text-decoration:none;position:relative}
+.sb-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8)}
+.sb-item.active{background:rgba(124,58,237,0.15);color:#a78bfa}
+.sb-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:#7c3aed;border-radius:0 2px 2px 0}
+.sb-item i{font-size:15px}
+.sb-badge{margin-left:auto;background:rgba(124,58,237,0.3);color:#a78bfa;font-size:9px;padding:1px 5px;border-radius:8px}
+.sb-footer{margin-top:auto;padding:10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.15);border-radius:10px}
+.sb-footer-label{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:2px}
+.sb-footer-val{font-size:12px;color:#a78bfa;font-weight:500}
+.sb-mem-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px}
+.sb-mem-fill{height:100%;width:0%;background:linear-gradient(to right,#7c3aed,#3b82f6);border-radius:2px;transition:width 1s ease}
+.lang-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#fff;font-size:12px;outline:none;cursor:pointer}
+.lang-select option{background:#13131a}
+
+/* MAIN LAYOUT (same as chat.html) */
+.main{margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,8,20,0.95);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.topbar-left h2{font-size:14px;font-weight:500;color:#fff}
+.topbar-left p{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.top-chip{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;font-family:inherit;border-width:1px}
+.top-chip:hover{background:rgba(255,255,255,0.08);color:#fff}
+.top-chip.accent{background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);color:#a78bfa}
+.top-chip.accent:hover{background:rgba(124,58,237,0.25)}
+.top-lang-select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);outline:none;cursor:pointer}
+.top-lang-select option{background:#13131a}
+
+/* CONTENT */
+.content{padding:20px 24px;display:flex;flex-direction:column;gap:16px;flex:1;max-width:760px}
+
+.panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px}
+.panel-title{font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.panel-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* ADD GOAL CARD */
+.goal-textarea{width:100%;min-height:90px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;color:#fff;font-size:13px;line-height:1.6;outline:none;resize:vertical;font-family:inherit;transition:border-color 0.2s}
+.goal-textarea:focus{border-color:rgba(124,58,237,0.4)}
+.goal-textarea::placeholder{color:rgba(255,255,255,0.2)}
+.btn{padding:10px 18px;border-radius:10px;font-size:12px;cursor:pointer;border:none;font-weight:500;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.btn.primary{background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;margin-top:12px}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.3)}
+.btn.primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* GOAL CARD LIST */
+.goal-list{display:flex;flex-direction:column;gap:10px}
+.goal-card{display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;transition:all 0.2s}
+.goal-card:hover{border-color:rgba(124,58,237,0.2)}
+.goal-check{width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(124,58,237,0.4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:all 0.2s;margin-top:1px;color:transparent}
+.goal-check:hover{border-color:#a78bfa}
+.goal-check.done{background:rgba(52,211,153,0.2);border-color:#34d399;color:#34d399}
+.goal-body{flex:1;min-width:0}
+.goal-text{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5}
+.goal-text.done{color:rgba(255,255,255,0.3);text-decoration:line-through}
+.goal-caption{font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px}
+.goal-progress-bar{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:10px;overflow:hidden}
+.goal-progress-fill{height:100%;border-radius:3px;background:linear-gradient(to right,#7c3aed,#3b82f6);width:0%;transition:width 0.6s ease}
+.goal-delete{width:28px;height:28px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;font-size:13px}
+.goal-delete:hover{background:rgba(239,68,68,0.15);color:#f87171}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:30px 16px;color:rgba(255,255,255,0.3);font-size:12px}
+.empty-state i{font-size:30px;display:block;margin-bottom:10px;color:rgba(124,58,237,0.35)}
+
+/* COMPLETED SECTION */
+.completed-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:#a78bfa;cursor:pointer;background:none;border:none;font-family:inherit;padding:6px 0;margin-top:4px}
+.completed-toggle i{font-size:13px;transition:transform 0.2s}
+.completed-toggle.open i{transform:rotate(90deg)}
+.completed-list{display:none;flex-direction:column;gap:8px;margin-top:10px}
+.completed-list.show{display:flex}
+.completed-card{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px}
+.completed-card i{color:#34d399;font-size:14px;flex-shrink:0}
+.completed-card .goal-text{font-size:12px}
+.completed-card .goal-delete{margin-left:auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(20,20,35,0.97);border:1px solid rgba(124,58,237,0.3);border-radius:12px;padding:12px 18px;font-size:12px;color:#fff;display:flex;align-items:center;gap:8px;box-shadow:0 8px 30px rgba(0,0,0,0.4);transform:translateY(20px);opacity:0;transition:all 0.3s ease;z-index:100;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast i{color:#34d399;font-size:15px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.goal-card, .completed-card{animation:fadeIn 0.3s ease}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"></div>
+    <div>
+      <div class="sb-logo-text">Mnemo AI</div>
+      <div class="sb-logo-sub">Life Intelligence</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Main</div>
+  <a href="/dashboard" class="sb-item">
+    <i class="ti ti-layout-dashboard"></i> Dashboard
+  </a>
+  <a href="/chat" class="sb-item">
+    <i class="ti ti-message-circle"></i> Chat
+    <span class="sb-badge">AI</span>
+  </a>
+  <a href="/journal" class="sb-item">
+    <i class="ti ti-notebook"></i> Journal
+  </a>
+  <a href="/insights" class="sb-item">
+    <i class="ti ti-chart-line"></i> Insights
+  </a>
+
+  <div class="sb-section">Memory</div>
+  <a href="/goals" class="sb-item active">
+    <i class="ti ti-target"></i> Goals
+  </a>
+  <a href="/timeline" class="sb-item">
+    <i class="ti ti-timeline"></i> Timeline
+  </a>
+  <a href="/future" class="sb-item">
+    <i class="ti ti-mail"></i> Future self
+  </a>
+  <a href="/forget" class="sb-item">
+    <i class="ti ti-trash"></i> Forget & heal
+  </a>
+
+  <div class="sb-section">Language</div>
+  <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+    <option value="English">🇬🇧 English</option>
+    <option value="Tamil">🇮🇳 Tamil</option>
+    <option value="Hindi">🇮🇳 Hindi</option>
+    <option value="Telugu">🇮🇳 Telugu</option>
+    <option value="Spanish">🇪🇸 Spanish</option>
+    <option value="French">🇫🇷 French</option>
+    <option value="German">🇩🇪 German</option>
+    <option value="Arabic">🇸🇦 Arabic</option>
+    <option value="Japanese">🇯🇵 Japanese</option>
+  </select>
+
+  <div class="sb-footer" style="margin-top:16px">
+    <div class="sb-footer-label">Memory active</div>
+    <div class="sb-footer-val" id="memCount">Loading...</div>
+    <div class="sb-mem-bar"><div class="sb-mem-fill" id="memBar"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Goal Guardian</h2>
+      <p>Mnemo never lets you forget your dreams</p>
+    </div>
+    <div class="topbar-right">
+      <select class="top-lang-select" id="topLangSelect" onchange="setLanguage(this.value)">
+        <option value="English">🇬🇧 English</option>
+        <option value="Tamil">🇮🇳 Tamil</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Telugu">🇮🇳 Telugu</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+      </select>
+      <div class="top-chip accent" onclick="document.getElementById('goalTextarea').focus()">
+        <i class="ti ti-plus" style="font-size:11px"></i> New goal
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#a78bfa"></div>
+        Add a new goal
+      </div>
+      <textarea class="goal-textarea" id="goalTextarea"
+        placeholder="I want to win this hackathon and prove myself..."></textarea>
+      <button class="btn primary" id="lockGoalBtn" onclick="addGoal()">
+        <i class="ti ti-lock"></i> Lock in this goal
+      </button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <div class="panel-dot" style="background:#fbbf24"></div>
+        Active goals
+      </div>
+      <div class="goal-list" id="activeGoalsList"></div>
+
+      <button class="completed-toggle" id="completedToggleBtn" onclick="toggleCompletedSection()">
+        <i class="ti ti-chevron-right"></i>
+        <span id="completedToggleLabel">Show completed (0)</span>
+      </button>
+      <div class="completed-list" id="completedGoalsList"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <i class="ti ti-circle-check"></i>
+  <span id="toastText">Goal locked in!</span>
+</div>
+
+<script>
+// LANGUAGE
+function setLanguage(lang){
+  localStorage.setItem('mnemo_language', lang);
+  document.getElementById('langSelect').value = lang;
+  document.getElementById('topLangSelect').value = lang;
+}
+function getLanguage(){
+  return localStorage.getItem('mnemo_language') || 'English';
+}
+(function initLang(){
+  const saved = getLanguage();
+  document.getElementById('langSelect').value = saved;
+  document.getElementById('topLangSelect').value = saved;
+})();
+
+// GOALS STORAGE
+function loadGoalsFromStorage(){
+  try{
+    return JSON.parse(localStorage.getItem('mnemo_goals')) || [];
+  }catch(e){
+    return [];
+  }
+}
+function saveGoalsToStorage(goals){
+  localStorage.setItem('mnemo_goals', JSON.stringify(goals));
+}
+
+function formatDate(iso){
+  const d = new Date(iso);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+// ADD GOAL
+async function addGoal(){
+  const textarea = document.getElementById('goalTextarea');
+  const text = textarea.value.trim();
+  if(!text){
+    alert('Please write a goal first.');
+    return;
+  }
+
+  const btn = document.getElementById('lockGoalBtn');
+  btn.disabled = true;
+
+  const goals = loadGoalsFromStorage();
+  const newGoal = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    text: text,
+    done: false,
+    date: new Date().toISOString()
+  };
+  goals.unshift(newGoal);
+  saveGoalsToStorage(goals);
+
+  try{
+    await fetch('/api/remember', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text: 'GOAL: ' + text, language: getLanguage()})
+    });
+  }catch(e){
+    // goal is still saved locally even if memory sync fails
+  }
+
+  textarea.value = '';
+  btn.disabled = false;
+  renderGoals();
+  showToast('Goal locked in! Mnemo will never let you forget this.');
+}
+
+// TOGGLE GOAL DONE
+function toggleGoal(id){
+  const goals = loadGoalsFromStorage();
+  const goal = goals.find(g => g.id === id);
+  if(goal){
+    goal.done = !goal.done;
+    saveGoalsToStorage(goals);
+    renderGoals();
+  }
+}
+
+// DELETE GOAL
+function deleteGoal(id){
+  let goals = loadGoalsFromStorage();
+  goals = goals.filter(g => g.id !== id);
+  saveGoalsToStorage(goals);
+  renderGoals();
+}
+
+// RENDER
+function renderGoals(){
+  const goals = loadGoalsFromStorage();
+  const active = goals.filter(g => !g.done);
+  const completed = goals.filter(g => g.done);
+
+  // ACTIVE LIST
+  const activeList = document.getElementById('activeGoalsList');
+  if(active.length === 0){
+    activeList.innerHTML = `
+      <div class="empty-state">
+        <i class="ti ti-target-arrow"></i>
+        No goals yet. Add your first dream above.
+      </div>
+    `;
+  } else {
+    activeList.innerHTML = active.map(g => `
+      <div class="goal-card">
+        <div class="goal-check" onclick="toggleGoal('${g.id}')">
+          <i class="ti ti-check"></i>
+        </div>
+        <div class="goal-body">
+          <div class="goal-text">${escapeHtml(g.text)}</div>
+          <div class="goal-caption">Locked on ${formatDate(g.date)}</div>
+          <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:0%"></div></div>
+        </div>
+        <button class="goal-delete" onclick="deleteGoal('${g.id}')" title="Delete goal">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // COMPLETED LIST
+  const completedList = document.getElementById('completedGoalsList');
+  const completedLabel = document.getElementById('completedToggleLabel');
+  completedLabel.textContent = 'Show completed (' + completed.length + ')';
+
+  if(completed.length === 0){
+    completedList.innerHTML = `
+      <div class="empty-state" style="padding:16px">
+        <i class="ti ti-trophy" style="font-size:22px"></i>
+        No completed goals yet.
+      </div>
+    `;
+  } else {
+    completedList.innerHTML = completed.map(g => `
+      <div class="completed-card">
+        <i class="ti ti-circle-check"></i>
+        <div class="goal-body">
+          <div class="goal-text done">${escapeHtml(g.text)}</div>
+          <div class="goal-caption">Locked on ${formatDate(g.date)}</div>
+        </div>
+        <button class="goal-delete" onclick="deleteGoal('${g.id}')" title="Delete goal">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// COMPLETED TOGGLE
+function toggleCompletedSection(){
+  const list = document.getElementById('completedGoalsList');
+  const btn = document.getElementById('completedToggleBtn');
+  list.classList.toggle('show');
+  btn.classList.toggle('open');
+}
+
+// TOAST
+let toastTimer = null;
+function showToast(message){
+  const toast = document.getElementById('toast');
+  document.getElementById('toastText').textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// LOAD MEMORY COUNT (sidebar footer)
+async function loadStats(){
+  try{
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    const pct = Math.min((data.memories || 0) / 100 * 100, 100);
+    document.getElementById('memBar').style.width = pct + '%';
+    document.getElementById('memCount').textContent = (data.memories || 0) + ' memories';
+  }catch(e){
+    document.getElementById('memCount').textContent = '0 memories';
+  }
+}
+loadStats();
+
+// INIT
+renderGoals();
+</script>
+</body>
+</html>

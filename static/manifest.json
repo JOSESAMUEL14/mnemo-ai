@@ -1,0 +1,13 @@
+{
+  "name": "Mnemo AI",
+  "short_name": "Mnemo",
+  "description": "The AI That Never Forgets You",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#07071a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
